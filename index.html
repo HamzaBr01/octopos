@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OctoPOS - Système de Point de Vente pour Restaurants</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Leaflet JS for Map -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        body {
+            font-family: 'Poppins', 'Roboto', sans-serif;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+        .gradient-background {
+            background: linear-gradient(135deg, #0288D1 0%, #26c6da 50%, #4CAF50 100%);
+        }
+        .bg-pattern {
+            background-color: #ffffff;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%230288d1' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .wave-divider {
+            position: relative;
+            height: 100px;
+            overflow: hidden;
+        }
+        .wave-divider svg {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+        }
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .hover-zoom {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-zoom:hover {
+            transform: scale(1.03);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .table-available {
+            background-color: #4CAF50;
+            transition: all 0.3s ease;
+        }
+        .table-available:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+        }
+        .table-occupied {
+            background-color: #F44336;
+        }
+        .logo-container {
+            position: relative;
+            display: inline-block;
+        }
+        .logo-text {
+            font-weight: 700;
+            background: linear-gradient(135deg, #0288D1, #4CAF50);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+        .logo-icon {
+            color: #0288D1;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+        .logo-container:hover .logo-icon {
+            transform: rotate(20deg);
+            color: #4CAF50;
+        }
+        #map {
+            height: 300px;
+            width: 100%;
+            border-radius: 0.5rem;
+        }
+        .contact-card {
+            transition: transform 0.3s ease;
+        }
+        .contact-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body class="bg-pattern">
+    <!-- Navigation Bar -->
+    <nav class="bg-white/90 backdrop-blur-md shadow-md fixed w-full z-10">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="logo-container flex items-center">
+                <div class="relative mr-2">
+                    <i class="fas fa-utensils logo-icon text-3xl absolute -top-1 -left-1 opacity-30"></i>
+                    <i class="fas fa-utensils logo-icon text-3xl"></i>
+                </div>
+                <span class="logo-text text-3xl">OctoPOS</span>
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#about" class="text-gray-700 hover:text-[#0288D1] transition duration-300">À propos</a>
+                <a href="#menu" class="text-gray-700 hover:text-[#0288D1] transition duration-300">Menu</a>
+                <a href="#tables" class="text-gray-700 hover:text-[#0288D1] transition duration-300">Tables</a>
+                <a href="#chefs" class="text-gray-700 hover:text-[#0288D1] transition duration-300">Nos Chefs</a>
+                <a href="#contact" class="text-gray-700 hover:text-[#0288D1] transition duration-300">Contact</a>
+            </div>
+            <div class="flex space-x-4">
+                <button class="bg-white text-[#0288D1] border border-[#0288D1] hover:bg-gray-100 rounded-full px-4 py-2 transition duration-300 flex items-center shadow-sm hover:shadow-md">
+                    <i class="fas fa-user mr-2"></i> Connexion
+                </button>
+                <button class="bg-gradient-to-r from-[#0288D1] to-[#026da8] text-white hover:from-[#026da8] hover:to-[#0288D1] rounded-full px-4 py-2 transition duration-300 flex items-center shadow-md">
+                    <i class="fas fa-plus mr-2"></i> Inscription
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="pt-24 pb-12 gradient-background text-white relative overflow-hidden">
+        <!-- Abstract shapes for background -->
+        <div class="absolute -top-20 -right-10 w-64 h-64 rounded-full bg-white/10"></div>
+        <div class="absolute top-40 -left-20 w-80 h-80 rounded-full bg-white/10"></div>
+        <div class="absolute bottom-10 right-20 w-40 h-40 rounded-full bg-white/10"></div>
+        
+        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center relative z-10">
+            <div class="md:w-1/2 mb-8 md:mb-0">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4 fade-in">Bienvenue chez <span class="text-yellow-200">OctoPOS</span></h1>
+                <p class="text-xl text-white/90 mb-6 fade-in">Système de Point de Vente moderne pour votre restaurant</p>
+                <div class="flex space-x-4 fade-in">
+                    <button class="bg-white text-[#0288D1] hover:bg-gray-100 px-6 py-3 rounded-md transition duration-300 flex items-center shadow-lg">
+                        <i class="fas fa-book-open mr-2"></i> Voir le Menu
+                    </button>
+                    <button class="bg-[#4CAF50]/90 text-white hover:bg-[#4CAF50] backdrop-blur-sm px-6 py-3 rounded-md transition duration-300 flex items-center shadow-lg">
+                        <i class="fas fa-chair mr-2"></i> Réserver une Table
+                    </button>
+                </div>
+            </div>
+            <div class="md:w-1/2">
+                <img src="https://images.unsplash.com/photo-1552566626-52f8b828add9?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1050&q=80" 
+                    alt="Restaurant Elegance" 
+                    class="w-full h-auto rounded-lg shadow-2xl fade-in transform rotate-1">
+            </div>
+        </div>
+        <!-- Wave divider -->
+        <div class="absolute bottom-0 left-0 right-0">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120">
+                <path fill="#ffffff" fill-opacity="1" d="M0,32L48,53.3C96,75,192,117,288,117.3C384,117,480,75,576,64C672,53,768,75,864,80C960,85,1056,75,1152,69.3C1248,64,1344,64,1392,64L1440,64L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path>
+            </svg>
+        </div>
+    </header>
+
+    <!-- About Us Section -->
+    <section id="about" class="py-20 bg-white relative">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-4 fade-in">À propos de Nous</h2>
+            <div class="w-24 h-1 bg-gradient-to-r from-[#0288D1] to-[#4CAF50] mx-auto mb-12"></div>
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-8 md:mb-0 fade-in">
+                    <div class="relative rounded-xl overflow-hidden shadow-2xl">
+                        <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1050&q=80" 
+                            alt="Notre Restaurant" 
+                            class="w-full h-auto rounded-xl">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 opacity-60 rounded-xl"></div>
+                        <button class="absolute inset-0 m-auto w-20 h-20 bg-white rounded-full shadow-xl flex items-center justify-center group">
+                            <div class="relative w-16 h-16 flex items-center justify-center bg-gradient-to-r from-[#0288D1] to-[#4CAF50] rounded-full group-hover:from-[#4CAF50] group-hover:to-[#0288D1] transition-all duration-300">
+                                <i class="fas fa-play text-white text-xl group-hover:scale-110 transition-transform"></i>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+                <div class="md:w-1/2 md:pl-12 fade-in">
+                    <span class="text-[#0288D1] font-semibold">Notre Histoire</span>
+                    <h3 class="text-3xl font-bold text-gray-800 mb-4">Une Passion pour la Gastronomie</h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        Fondé en 2020, notre restaurant est né d'une passion pour la cuisine authentique et l'innovation technologique. 
+                        Nous avons créé un environnement où la tradition culinaire rencontre la modernité du service, 
+                        offrant une expérience gastronomique inoubliable à nos clients.
+                    </p>
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        Notre philosophie est simple : des ingrédients frais, des plats préparés avec amour, 
+                        et un service client exceptionnel grâce à notre système OctoPOS spécialement conçu pour optimiser 
+                        l'expérience des clients et le travail de nos équipes.
+                    </p>
+                    <button class="bg-white text-gray-800 border-2 border-[#0288D1] hover:bg-gradient-to-r hover:from-[#0288D1] hover:to-[#4CAF50] hover:text-white px-6 py-3 rounded-full transition duration-300 flex items-center shadow-md group">
+                        <i class="fas fa-info-circle mr-2 group-hover:rotate-12 transition-transform"></i> En savoir plus
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu" class="py-20 bg-gray-50 relative">
+        <!-- Abstract background elements -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-[#0288D1]/5 rounded-bl-full"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-[#4CAF50]/5 rounded-tr-full"></div>
+        
+        <div class="container mx-auto px-4 relative z-10">
+            <h2 class="text-3xl font-bold text-center mb-4 fade-in">Notre Menu</h2>
+            <div class="w-24 h-1 bg-gradient-to-r from-[#0288D1] to-[#4CAF50] mx-auto mb-8"></div>
+            <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto fade-in">
+                Découvrez notre sélection de plats exquis, préparés avec des ingrédients frais et locaux par nos chefs talentueux.
+            </p>
+            
+            <!-- Menu Categories -->
+            <div class="flex flex-wrap justify-center mb-12 fade-in">
+                <button class="menu-filter bg-gradient-to-r from-[#0288D1] to-[#026da8] text-white px-6 py-3 m-2 rounded-full shadow-md" data-category="all">
+                    <i class="fas fa-utensils mr-1"></i> Tous
+                </button>
+                <button class="menu-filter bg-white text-gray-700 px-6 py-3 m-2 rounded-full shadow-md hover:bg-gray-100" data-category="appetizers">
+                    <i class="fas fa-cheese mr-1"></i> Entrées
+                </button>
+                <button class="menu-filter bg-white text-gray-700 px-6 py-3 m-2 rounded-full shadow-md hover:bg-gray-100" data-category="main">
+                    <i class="fas fa-drumstick-bite mr-1"></i> Plats Principaux
+                </button>
+                <button class="menu-filter bg-white text-gray-700 px-6 py-3 m-2 rounded-full shadow-md hover:bg-gray-100" data-category="desserts">
+                    <i class="fas fa-ice-cream mr-1"></i> Desserts
+                </button>
+                <button class="menu-filter bg-white text-gray-700 px-6 py-3 m-2 rounded-full shadow-md hover:bg-gray-100" data-category="drinks">
+                    <i class="fas fa-glass-martini-alt mr-1"></i> Boissons
+                </button>
+            </div>
+            
+            <!-- Menu Items Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Menu Item 1 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-zoom menu-item fade-in" data-category="appetizers">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1546039907-7fa05f864c02?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8c2FsYWR8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60" 
+                            alt="Salade César" class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-xl text-gray-800">Salade César</h3>
+                            <span class="text-[#0288D1] font-bold text-lg">8,90 €</span>
+                        </div>
+                        <p class="text-gray-600 mb-6">Laitue romaine, croûtons, parmesan, poulet grillé et notre sauce César maison.</p>
+                        <button class="w-full bg-gradient-to-r from-[#4CAF50] to-[#3d8b40] text-white py-3 rounded-lg transition duration-300 hover:from-[#3d8b40] hover:to-[#4CAF50] flex items-center justify-center shadow-md">
+                            <i class="fas fa-cart-plus mr-2"></i> Ajouter au panier
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Menu Item 2 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-zoom menu-item fade-in" data-category="main">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1544025162-d76694265947?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTV8fHBhc3RhfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=500&q=60" 
+                            alt="Pâtes Carbonara" class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-xl text-gray-800">Pâtes Carbonara</h3>
+                            <span class="text-[#0288D1] font-bold text-lg">14,50 €</span>
+                        </div>
+                        <p class="text-gray-600 mb-6">Pâtes fraîches, lardons, crème, œuf, parmesan et poivre noir fraîchement moulu.</p>
+                        <button class="w-full bg-gradient-to-r from-[#4CAF50] to-[#3d8b40] text-white py-3 rounded-lg transition duration-300 hover:from-[#3d8b40] hover:to-[#4CAF50] flex items-center justify-center shadow-md">
+                            <i class="fas fa-cart-plus mr-2"></i> Ajouter au panier
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Menu Item 3 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-zoom menu-item fade-in" data-category="desserts">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NHx8Y2hlZXNlY2FrZXxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=500&q=60" 
+                            alt="Cheesecake" class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-xl text-gray-800">Cheesecake New-York</h3>
+                            <span class="text-[#0288D1] font-bold text-lg">7,90 €</span>
+                        </div>
+                        <p class="text-gray-600 mb-6">Gâteau au fromage crémeux sur une base de biscuits Graham, avec coulis de fruits rouges.</p>
+                        <button class="w-full bg-gradient-to-r from-[#4CAF50] to-[#3d8b40] text-white py-3 rounded-lg transition duration-300 hover:from-[#3d8b40] hover:to-[#4CAF50] flex items-center justify-center shadow-md">
+                            <i class="fas fa-cart-plus mr-2"></i> Ajouter au panier
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Menu Item 4 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-zoom menu-item fade-in" data-category="drinks">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1527661591475-527312dd65f5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8Y29ja3RhaWx8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60" 
+                             alt="Cocktail" class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-xl text-gray-800">Mojito Classique</h3>
+                            <span class="text-[#0288D1] font-bold text-lg">9,50 €</span>
+                        </div>
+                        <p class="text-gray-600 mb-6">Rhum blanc, menthe fraîche, citron vert, sirop de sucre et eau gazeuse.</p>
+                        <button class="w-full bg-gradient-to-r from-[#4CAF50] to-[#3d8b40] text-white py-3 rounded-lg transition duration-300 hover:from-[#3d8b40] hover:to-[#4CAF50] flex items-center justify-center shadow-md">
+                            <i class="fas fa-cart-plus mr-2"></i> Ajouter au panier
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Menu Item 5 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-zoom menu-item fade-in" data-category="main">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1565299507177-b0ac66763828?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NXx8c3RlYWt8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60" 
+                             alt="Steak" class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-xl text-gray-800">Entrecôte Grillée</h3>
+                            <span class="text-[#0288D1] font-bold text-lg">22,90 €</span>
+                        </div>
+                        <p class="text-gray-600 mb-6">Entrecôte de bœuf grillée, servie avec frites maison et sauce au poivre.</p>
+                        <button class="w-full bg-gradient-to-r from-[#4CAF50] to-[#3d8b40] text-white py-3 rounded-lg transition duration-300 hover:from-[#3d8b40] hover:to-[#4CAF50] flex items-center justify-center shadow-md">
+                            <i class="fas fa-cart-plus mr-2"></i> Ajouter au panier
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Menu Item 6 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-zoom menu-item fade-in" data-category="appetizers">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1626700051175-6818013e1d4f?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8YnJ1c2NoZXR0YXxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=500&q=60" 
+                             alt="Bruschetta" class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-xl text-gray-800">Bruschetta Tomate</h3>
+                            <span class="text-[#0288D1] font-bold text-lg">6,90 €</span>
+                        </div>
+                        <p class="text-gray-600 mb-6">Pain grillé à l'ail, tomates fraîches, basilic, huile d'olive et réduction balsamique.</p>
+                        <button class="w-full bg-gradient-to-r from-[#4CAF50] to-[#3d8b40] text-white py-3 rounded-lg transition duration-300 hover:from-[#3d8b40] hover:to-[#4CAF50] flex items-center justify-center shadow-md">
+                            <i class="fas fa-cart-plus mr-2"></i> Ajouter au panier
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-16">
+                <button class="bg-gradient-to-r from-[#0288D1] to-[#026da8] text-white hover:from-[#026da8] hover:to-[#0288D1] px-8 py-3 rounded-full transition duration-300 fade-in shadow-lg">
+                    <i class="fas fa-utensils mr-2"></i> Voir tout le menu
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Table Selection Section -->
+    <section id="tables" class="py-20 bg-gradient-to-br from-blue-50 to-green-50 relative overflow-hidden">
+        <!-- Decorative elements -->
+        <div class="absolute top-20 left-10 w-72 h-72 rounded-full bg-gradient-to-r from-[#0288D1]/10 to-[#4CAF50]/10 opacity-50 blur-3xl"></div>
+        <div class="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-gradient-to-r from-[#0288D1]/10 to-[#4CAF50]/10 opacity-50 blur-3xl"></div>
+        
+        <div class="container mx-auto px-4 relative z-10">
+            <h2 class="text-4xl font-bold text-center mb-4 fade-in bg-gradient-to-r from-[#0288D1] to-[#4CAF50] bg-clip-text text-transparent">Choisissez votre Table</h2>
+            <div class="w-24 h-1 bg-gradient-to-r from-[#0288D1] to-[#4CAF50] mx-auto mb-8"></div>
+            <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto fade-in">
+                Réservez l'emplacement idéal pour votre expérience culinaire grâce à notre système interactif de sélection de table.
+            </p>
+            
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-8 max-w-5xl mx-auto fade-in">
+                <!-- Top controls -->
+                <div class="flex flex-wrap justify-between items-center mb-8">
+                    <div class="flex flex-wrap items-center gap-4 mb-4 sm:mb-0">
+                        <div class="relative">
+                            <select class="appearance-none pl-4 pr-10 py-2 bg-gray-50 text-gray-700 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0288D1] transition">
+                                <option>Aujourd'hui</option>
+                                <option>Demain</option>
+                                <option>11 Avril 2025</option>
+                                <option>12 Avril 2025</option>
+                                <option selected>9 Avril 2025</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <i class="fas fa-chevron-down text-[#0288D1] text-xs"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <select class="appearance-none pl-4 pr-10 py-2 bg-gray-50 text-gray-700 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0288D1] transition">
+                                <option selected>19:00</option>
+                                <option>19:30</option>
+                                <option>20:00</option>
+                                <option>20:30</option>
+                                <option>21:00</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <i class="fas fa-chevron-down text-[#0288D1] text-xs"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <select class="appearance-none pl-4 pr-10 py-2 bg-gray-50 text-gray-700 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0288D1] transition">
+                                <option selected>2 personnes</option>
+                                <option>4 personnes</option>
+                                <option>6 personnes</option>
+                                <option>8+ personnes</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <i class="fas fa-chevron-down text-[#0288D1] text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-gradient-to-br from-[#4CAF50] to-[#2E7D32] mr-2 shadow-sm"></div>
+                            <span class="text-sm font-medium">Disponible</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-gradient-to-br from-[#F44336] to-[#C62828] mr-2 shadow-sm"></div>
+                            <span class="text-sm font-medium">Occupée</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-200 mb-8">
+                    <button class="py-3 px-6 border-b-2 border-[#0288D1] text-[#0288D1] font-medium">Vue plan</button>
+                    <button class="py-3 px-6 text-gray-500 hover:text-[#0288D1] transition">Vue liste</button>
+                    <button class="py-3 px-6 text-gray-500 hover:text-[#0288D1] transition">Recommandations</button>
+                </div>
+                    
+                <!-- Restaurant Map Layout - Matching OctoPOS Style -->
+                <div class="w-full bg-gray-50 rounded-xl p-6 relative mb-10" style="min-height: 520px;">
+                    <!-- Restaurant Sections -->
+                    <div class="flex flex-col gap-8">
+                        <!-- Main Dining Area -->
+                        <div class="bg-white/80 p-6 rounded-xl shadow-md">
+                            <h4 class="text-lg font-bold mb-4 text-gray-800 flex items-center">
+                                <span class="w-8 h-8 bg-gradient-to-r from-[#0288D1] to-[#026da8] rounded-lg text-white flex items-center justify-center mr-2">
+                                    <i class="fas fa-utensils text-xs"></i>
+                                </span>
+                                Salle Principale
+                            </h4>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <!-- Tables - Main Area -->
+                                <div class="table-item rounded-xl overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-lg cursor-pointer" data-table="1">
+                                    <div class="h-full bg-gradient-to-r from-[#4CAF50] to-[#2E7D32] p-4 flex flex-col justify-between">
+                                        <div class="flex justify-between items-start">
+                                            <span class="bg-white/20 backdrop-blur-sm text-white text-xs py-1 px-2 rounded-full">4 pers.</span>
+                                            <div class="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                <i class="fas fa-chair text-white text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-end justify-between">
+                                            <div>
+                                                <div class="text-white/80 text-xs">Table</div>
+                                                <div class="text-white font-bold text-lg">01</div>
+                                            </div>
+                                            <div class="bg-white/20 backdrop-blur-sm h-8 w-8 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-check text-white"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-item rounded-xl overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-lg cursor-pointer" data-table="2">
+                                    <div class="h-full bg-gradient-to-r from-[#4CAF50] to-[#2E7D32] p-4 flex flex-col justify-between">
+                                        <div class="flex justify-between items-start">
+                                            <span class="bg-white/20 backdrop-blur-sm text-white text-xs py-1 px-2 rounded-full">4 pers.</span>
+                                            <div class="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                <i class="fas fa-chair text-white text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-end justify-between">
+                                            <div>
+                                                <div class="text-white/80 text-xs">Table</div>
+                                                <div class="text-white font-bold text-lg">02</div>
+                                            </div>
+                                            <div class="bg-white/20 backdrop-blur-sm h-8 w-8 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-check text-white"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-item rounded-xl overflow-hidden transition-all duration-300" data-table="3">
+                                    <div class="h-full bg-gradient-to-r from-[#F44336] to-[#C62828] p-4 flex flex-col justify-between opacity-90">
+                                        <div class="flex justify-between items-start">
+                                            <span class="bg-white/20 backdrop-blur-sm text-white text-xs py-1 px-2 rounded-full">2 pers.</span>
+                                            <div class="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                <i class="fas fa-chair text-white text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-end justify-between">
+                                            <div>
+                                                <div class="text-white/80 text-xs">Table</div>
+                                                <div class="text-white font-bold text-lg">03</div>
+                                            </div>
+                                            <div class="bg-white/20 backdrop-blur-sm h-8 w-8 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-lock text-white"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-item rounded-xl overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-lg cursor-pointer" data-table="4">
+                                    <div class="h-full bg-gradient-to-r from-[#4CAF50] to-[#2E7D32] p-4 flex flex-col justify-between">
+                                        <div class="flex justify-between items-start">
+                                            <span class="bg-white/20 backdrop-blur-sm text-white text-xs py-1 px-2 rounded-full">6 pers.</span>
+                                            <div class="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                <i class="fas fa-chair text-white text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-end justify-between">
+                                            <div>
+                                                <div class="text-white/80 text-xs">Table</div>
+                                                <div class="text-white font-bold text-lg">04</div>
+                                            </div>
+                                            <div class="bg-white/20 backdrop-blur-sm h-8 w-8 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-check text-white"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-item rounded-xl overflow-hidden transition-all duration-300" data-table="5">
+                                    <div class="h-full bg-gradient-to-r from-[#F44336] to-[#C62828] p-4 flex flex-col justify-between opacity-90">
+                                        <div class="flex justify-between items-start">
+                                            <span class="bg-white/20 backdrop-blur-sm text-white text-xs py-1 px-2 rounded-full">6 pers.</span>
+                                            <div class="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                <i class="fas fa-chair text-white text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-end justify-between">
+                                            <div>
+                                                <div class="text-white/80 text-xs">Table</div>
+                                                <div class="text-white font-bold text-lg">05</div>
+                                            </div>
+                                            <div class="bg-white/20 backdrop-blur-sm h-8 w-8 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-lock text-white"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-item rounded-xl overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-lg cursor-pointer" data-table="6">
+                                    <div class="h-full bg-gradient-to-r from-[#4CAF50] to-[#2E7D32] p-4 flex flex-col justify-between">
+                                        <div class="flex justify-between items-start">
+                                            <span class="bg-white/20 backdrop-blur-sm text-white text-xs py-1 px-2 rounded-full">4 pers.</span>
+                                            <div class="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                <i class="fas fa-chair text-white text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-end justify-between">
+                                            <div>
+                                                <div class="text-white/80 text-xs">Table</div>
+                                                <div class="text-white font-bold text-lg">06</div>
+                                            </div>
+                                            <div class="bg-white/20 backdrop-blur-sm h-8 w-8 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-check text-white"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- VIP Section -->
+                        <div class="bg-white/80 p-6 rounded-xl shadow-md">
+                            <h4 class="text-lg font-bold mb-4 text-gray-800 flex items-center">
+                                <span class="w-8 h-8 bg-gradient-to-r from-[#FFC107] to-[#FF9800] rounded-lg text-white flex items-center justify-center mr-2">
+                                    <i class="fas fa-crown text-xs"></i>
+                                </span>
+                                Espace VIP
+                            </h4>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div class="table-item rounded-xl overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-lg cursor-pointer" data-table="V1">
+                                    <div class="h-full bg-gradient-to-r from-[#FFC107] to-[#FF9800] p-4 flex flex-col justify-between">
+                                        <div class="flex justify-between items-start">
+                                            <span class="bg-white/20 backdrop-blur-sm text-white text-xs py-1 px-2 rounded-full">8 pers.</span>
+                                            <div class="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                <i class="fas fa-star text-white text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-end justify-between">
+                                            <div>
+                                                <div class="text-white/80 text-xs">VIP</div>
+                                                <div class="text-white font-bold text-lg">01</div>
+                                            </div>
+                                            <div class="bg-white/20 backdrop-blur-sm h-8 w-8 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-check text-white"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-item rounded-xl overflow-hidden transition-all duration-300" data-table="V2">
+                                    <div class="h-full bg-gradient-to-r from-[#F44336] to-[#C62828] p-4 flex flex-col justify-between opacity-90">
+                                        <div class="flex justify-between items-start">
+                                            <span class="bg-white/20 backdrop-blur-sm text-white text-xs py-1 px-2 rounded-full">6 pers.</span>
+                                            <div class="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                <i class="fas fa-star text-white text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-end justify-between">
+                                            <div>
+                                                <div class="text-white/80 text-xs">VIP</div>
+                                                <div class="text-white font-bold text-lg">02</div>
+                                            </div>
+                                            <div class="bg-white/20 backdrop-blur-sm h-8 w-8 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-lock text-white"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Terrace Section -->
+                        <div class="bg-white/80 p-6 rounded-xl shadow-md">
+                            <h4 class="text-lg font-bold mb-4 text-gray-800 flex items-center">
+                                <span class="w-8 h-8 bg-gradient-to-r from-[#0288D1] to-[#03A9F4] rounded-lg text-white flex items-center justify-center mr-2">
+                                    <i class="fas fa-umbrella-beach text-xs"></i>
+                                </span>
+                                Terrasse
+                            </h4>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div class="table-item rounded-xl overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-lg cursor-pointer" data-table="T1">
+                                    <div class="h-full bg-gradient-to-r from-[#4CAF50] to-[#2E7D32] p-4 flex flex-col justify-between">
+                                        <div class="flex justify-between items-start">
+                                            <span class="bg-white/20 backdrop-blur-sm text-white text-xs py-1 px-2 rounded-full">4 pers.</span>
+                                            <div class="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                <i class="fas fa-leaf text-white text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-end justify-between">
+                                            <div>
+                                                <div class="text-white/80 text-xs">Terrasse</div>
+                                                <div class="text-white font-bold text-lg">01</div>
+                                            </div>
+                                            <div class="bg-white/20 backdrop-blur-sm h-8 w-8 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-check text-white"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-item rounded-xl overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-lg cursor-pointer" data-table="T2">
+                                    <div class="h-full bg-gradient-to-r from-[#4CAF50] to-[#2E7D32] p-4 flex flex-col justify-between">
+                                        <div class="flex justify-between items-start">
+                                            <span class="bg-white/20 backdrop-blur-sm text-white text-xs py-1 px-2 rounded-full">2 pers.</span>
+                                            <div class="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                <i class="fas fa-leaf text-white text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-end justify-between">
+                                            <div>
+                                                <div class="text-white/80 text-xs">Terrasse</div>
+                                                <div class="text-white font-bold text-lg">02</div>
+                                            </div>
+                                            <div class="bg-white/20 backdrop-blur-sm h-8 w-8 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-check text-white"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-item rounded-xl overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-lg cursor-pointer" data-table="T3">
+                                    <div class="h-full bg-gradient-to-r from-[#4CAF50] to-[#2E7D32] p-4 flex flex-col justify-between">
+                                        <div class="flex justify-between items-start">
+                                            <span class="bg-white/20 backdrop-blur-sm text-white text-xs py-1 px-2 rounded-full">6 pers.</span>
+                                            <div class="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                <i class="fas fa-leaf text-white text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-end justify-between">
+                                            <div>
+                                                <div class="text-white/80 text-xs">Terrasse</div>
+                                                <div class="text-white font-bold text-lg">03</div>
+                                            </div>
+                                            <div class="bg-white/20 backdrop-blur-sm h-8 w-8 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-check text-white"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-item rounded-xl overflow-hidden transition-all duration-300" data-table="T4">
+                                    <div class="h-full bg-gradient-to-r from-[#F44336] to-[#C62828] p-4 flex flex-col justify-between opacity-90">
+                                        <div class="flex justify-between items-start">
+                                            <span class="bg-white/20 backdrop-blur-sm text-white text-xs py-1 px-2 rounded-full">4 pers.</span>
+                                            <div class="w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                <i class="fas fa-leaf text-white text-xs"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-end justify-between">
+                                            <div>
+                                                <div class="text-white/80 text-xs">Terrasse</div>
+                                                <div class="text-white font-bold text-lg">04</div>
+                                            </div>
+                                            <div class="bg-white/20 backdrop-blur-sm h-8 w-8 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-lock text-white"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom Actions -->
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button class="px-6 py-3 bg-white text-gray-700 rounded-full shadow-md hover:shadow-lg transition flex items-center border border-gray-200">
+                        <i class="fas fa-list mr-2 text-[#0288D1]"></i> Voir toutes les tables
+                    </button>
+                    <button class="px-6 py-3 bg-gradient-to-r from-[#0288D1] to-[#026da8] text-white rounded-full shadow-md hover:shadow-lg transition hover:from-[#026da8] hover:to-[#0288D1] flex items-center">
+                        <i class="fas fa-calendar-check mr-2"></i> Réserver maintenant
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Reservation Modal -->
+            <div id="reservation-popup" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+                <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"></div>
+                <div class="relative bg-white rounded-xl p-8 max-w-md w-full max-h-[90vh] overflow-auto shadow-2xl">
+                    <!-- Close button -->
+                    <button id="close-reservation" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition">
+                        <i class="fas fa-times text-gray-600"></i>
+                    </button>
+                    
+                    <div class="text-center mb-6">
+                        <div class="inline-block p-3 rounded-full bg-gradient-to-r from-[#0288D1]/10 to-[#4CAF50]/10 mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-r from-[#0288D1] to-[#4CAF50] rounded-full flex items-center justify-center">
+                                <i class="fas fa-calendar-check text-white text-lg"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold bg-gradient-to-r from-[#0288D1] to-[#4CAF50] bg-clip-text text-transparent">Réserver Table <span id="selected-table">01</span></h3>
+                        <p class="text-gray-500 text-sm mt-1">9 Avril 2025 à 19:00</p>
+                    </div>
+                    
+                    <form>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2" for="name">Nom complet</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-user text-[#0288D1]"></i>
+                                    </div>
+                                    <input class="w-full pl-10 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0288D1] focus:border-transparent transition" 
+                                        type="text" id="name" placeholder="Votre nom" required>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-gray-700 text-sm font-medium mb-2" for="email">Email</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-envelope text-[#0288D1]"></i>
+                                        </div>
+                                        <input class="w-full pl-10 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0288D1] focus:border-transparent transition" 
+                                            type="email" id="email" placeholder="email@example.com" required>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 text-sm font-medium mb-2" for="phone">Téléphone</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-phone text-[#0288D1]"></i>
+                                        </div>
+                                        <input class="w-full pl-10 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0288D1] focus:border-transparent transition" 
+                                            type="tel" id="phone" placeholder="+33 1 23 45 67 89" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2" for="special-requests">Demandes spéciales</label>
+                                <textarea class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0288D1] focus:border-transparent transition" 
+                                        id="special-requests" placeholder="Allergies, occasions spéciales..." rows="3"></textarea>
+                            </div>
+                            
+                            <div class="pt-3">
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="terms" type="checkbox" class="w-4 h-4 text-[#0288D1] rounded focus:ring-[#0288D1]">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="terms" class="font-medium text-gray-700">J'accepte les <a href="#" class="text-[#0288D1] hover:underline">conditions de réservation</a></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8">
+                            <button type="button" id="confirm-reservation" class="w-full bg-gradient-to-r from-[#0288D1] to-[#4CAF50] text-white py-3 px-4 rounded-lg transition hover:from-[#026da8] hover:to-[#3d8b40] flex items-center justify-center font-medium">
+                                <i class="fas fa-calendar-check mr-2"></i> Confirmer la réservation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Success Message -->
+            <div id="reservation-success" class="max-w-md mx-auto mt-8 bg-white rounded-xl shadow-xl p-8 fade-in text-center hidden">
+                <div class="mx-auto relative w-24 h-24 mb-6">
+                    <div class="absolute inset-0 rounded-full bg-[#4CAF50]/20 animate-ping opacity-25"></div>
+                    <div class="relative w-24 h-24 bg-gradient-to-r from-[#0288D1] to-[#4CAF50] rounded-full flex items-center justify-center">
+                        <i class="fas fa-check text-3xl text-white"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">Réservation Confirmée!</h3>
+                <p class="text-gray-600 mb-6">Un email de confirmation avec tous les détails a été envoyé à votre adresse.</p>
+                <div class="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
+                    <div class="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
+                        <span class="text-gray-600 font-medium">Table:</span>
+                        <span class="font-bold text-gray-900" id="success-table">Table 01</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
+                        <span class="text-gray-600 font-medium">Date:</span>
+                        <span class="font-bold text-gray-900" id="success-date">9 Avril 2025</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
+                        <span class="text-gray-600 font-medium">Heure:</span>
+                        <span class="font-bold text-gray-900" id="success-time">19:00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600 font-medium">Référence:</span>
+                        <span class="font-bold text-[#0288D1]" id="success-ref">OCT-2587R9</span>
+                    </div>
+                </div>
+                <div class="flex space-x-4">
+                    <button class="w-1/2 bg-gradient-to-r from-[#0288D1] to-[#026da8] text-white py-3 rounded-lg transition hover:from-[#026da8] hover:to-[#0288D1] shadow-md">
+                        <i class="fas fa-home mr-2"></i> Accueil
+                    </button>
+                    <button class="w-1/2 bg-white text-gray-700 border border-gray-200 py-3 rounded-lg transition hover:bg-gray-50 shadow-sm">
+                        <i class="fas fa-utensils mr-2"></i> Voir le menu
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // Table selection
+            document.addEventListener('DOMContentLoaded', function() {
+                // When we load or reload the page
+                const tableItems = document.querySelectorAll('.table-item');
+                const reservationPopup = document.getElementById('reservation-popup');
+                const closeReservationBtn = document.getElementById('close-reservation');
+                const confirmReservationBtn = document.getElementById('confirm-reservation');
+                const selectedTableSpan = document.getElementById('selected-table');
+                const reservationSuccess = document.getElementById('reservation-success');
+                const successTable = document.getElementById('success-table');
+                const successDate = document.getElementById('success-date');
+                const successTime = document.getElementById('success-time');
+                const successRef = document.getElementById('success-ref');
+                
+                // Current date for reference
+                const today = new Date();
+                const formattedDate = today.toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                
+                // Only attach event listeners to available tables
+                tableItems.forEach(table => {
+                    if (!table.querySelector('.fa-lock')) {
+                        table.addEventListener('click', function() {
+                            const tableId = this.getAttribute('data-table');
+                            selectedTableSpan.textContent = tableId;
+                            reservationPopup.classList.remove('hidden');
+                            
+                            // Generate today's date
+                            successDate.textContent = formattedDate;
+                        });
+                    }
+                });
+                
+                // Close popup
+                closeReservationBtn.addEventListener('click', function() {
+                    reservationPopup.classList.add('hidden');
+                });
+                
+                // Confirm reservation
+                confirmReservationBtn.addEventListener('click', function() {
+                    const nameInput = document.getElementById('name');
+                    const emailInput = document.getElementById('email');
+                    const phoneInput = document.getElementById('phone');
+                    const termsCheckbox = document.getElementById('terms');
+                    
+                    // Validation
+                    if (nameInput.value && emailInput.value && phoneInput.value && termsCheckbox.checked) {
+                        reservationPopup.classList.add('hidden');
+                        reservationSuccess.classList.remove('hidden');
+                        successTable.textContent = `Table ${selectedTableSpan.textContent}`;
+                        successTime.textContent = '19:00';
+                        
+                        // Generate random reference
+                        const randomRef = `OCT-${Math.floor(1000 + Math.random() * 9000)}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${Math.floor(1 + Math.random() * 9)}`;
+                        successRef.textContent = randomRef;
+                        
+                        // Reset form
+                        nameInput.value = '';
+                        emailInput.value = '';
+                        phoneInput.value = '';
+                        termsCheckbox.checked = false;
+                        document.getElementById('special-requests').value = '';
+                    } else {
+                        // Show validation errors
+                        if (!nameInput.value) nameInput.classList.add('border-red-500');
+                        if (!emailInput.value) emailInput.classList.add('border-red-500');
+                        if (!phoneInput.value) phoneInput.classList.add('border-red-500');
+                        if (!termsCheckbox.checked) {
+                            document.querySelector('label[for="terms"]').classList.add('text-red-500');
+                        }
+                    }
+                    
+                    // Remove error styling on input
+                    const inputs = [nameInput, emailInput, phoneInput];
+                    inputs.forEach(input => {
+                        input.addEventListener('input', function() {
+                            this.classList.remove('border-red-500');
+                        });
+                    });
+                    
+                    termsCheckbox.addEventListener('change', function() {
+                        if (this.checked) {
+                            document.querySelector('label[for="terms"]').classList.remove('text-red-500');
+                        }
+                    });
+                });
+                
+                // Close modal when clicking outside
+                window.addEventListener('click', function(event) {
+                    if (event.target === reservationPopup) {
+                        reservationPopup.classList.add('hidden');
+                    }
+                });
+            });
+        </script>
+    </section>
+
+    <!-- Our Chefs Section -->
+    <section id="chefs" class="py-20 bg-gray-50 relative">
+        <!-- Decorative elements -->
+        <div class="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white to-transparent"></div>
+        
+        <div class="container mx-auto px-4 relative z-10">
+            <h2 class="text-3xl font-bold text-center mb-4 fade-in">Nos Chefs Talentueux</h2>
+            <div class="w-24 h-1 bg-gradient-to-r from-[#0288D1] to-[#4CAF50] mx-auto mb-8"></div>
+            <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto fade-in">
+                Découvrez les artistes culinaires qui rendent chaque plat exceptionnel grâce à leur créativité et expertise.
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Chef 1 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-zoom fade-in">
+                    <div class="h-72 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Nnx8Y2hlZnxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=500&q=60" 
+                             alt="Chef Michel" class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                    </div>
+                    <div class="p-8">
+                        <h3 class="font-bold text-2xl mb-2 text-gray-800">Chef Michel Dubois</h3>
+                        <p class="bg-gradient-to-r from-[#0288D1] to-[#026da8] bg-clip-text text-transparent font-semibold mb-4 text-lg">Chef Exécutif</p>
+                        <p class="text-gray-600 mb-6 leading-relaxed">
+                            Avec 20 ans d'expérience dans les restaurants étoilés, le Chef Michel apporte un savoir-faire unique à notre cuisine.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <div class="bg-red-100 text-red-600 px-4 py-2 rounded-full text-sm font-semibold">
+                                <i class="fas fa-drumstick-bite mr-2"></i> Viandes
+                            </div>
+                            <div class="bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-semibold">
+                                <i class="fas fa-fish mr-2"></i> Poissons
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chef 2 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-zoom fade-in">
+                    <div class="h-72 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1581299894007-aaa50297cf16?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTl8fGNoZWZ8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60" 
+                             alt="Chef Sophie" class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                    </div>
+                    <div class="p-8">
+                        <h3 class="font-bold text-2xl mb-2 text-gray-800">Chef Sophie Martin</h3>
+                        <p class="bg-gradient-to-r from-[#0288D1] to-[#026da8] bg-clip-text text-transparent font-semibold mb-4 text-lg">Chef Pâtissière</p>
+                        <p class="text-gray-600 mb-6 leading-relaxed">
+                            Formée à l'école de pâtisserie de Paris, Sophie crée des desserts qui sont de véritables œuvres d'art.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <div class="bg-yellow-100 text-yellow-600 px-4 py-2 rounded-full text-sm font-semibold">
+                                <i class="fas fa-birthday-cake mr-2"></i> Pâtisserie
+                            </div>
+                            <div class="bg-purple-100 text-purple-600 px-4 py-2 rounded-full text-sm font-semibold">
+                                <i class="fas fa-ice-cream mr-2"></i> Desserts glacés
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chef 3 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover-zoom fade-in">
+                    <div class="h-72 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1622021142947-da7dedc7c39a?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mjd8fGNoZWZ8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60" 
+                             alt="Chef Carlos" class="w-full h-full object-cover transition-transform duration-700 hover:scale-110">
+                    </div>
+                    <div class="p-8">
+                        <h3 class="font-bold text-2xl mb-2 text-gray-800">Chef Carlos Rodriguez</h3>
+                        <p class="bg-gradient-to-r from-[#0288D1] to-[#026da8] bg-clip-text text-transparent font-semibold mb-4 text-lg">Chef de Cuisine</p>
+                        <p class="text-gray-600 mb-6 leading-relaxed">
+                            Spécialiste de la cuisine fusion, Carlos mélange habilement les saveurs du monde entier dans ses créations.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <div class="bg-green-100 text-green-600 px-4 py-2 rounded-full text-sm font-semibold">
+                                <i class="fas fa-seedling mr-2"></i> Cuisine végétarienne
+                            </div>
+                            <div class="bg-orange-100 text-orange-600 px-4 py-2 rounded-full text-sm font-semibold">
+                                <i class="fas fa-pepper-hot mr-2"></i> Cuisine épicée
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 gradient-background text-white relative">
+        <!-- Wave divider top -->
+        <div class="absolute top-0 left-0 right-0 transform rotate-180">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120">
+                <path fill="#f9fafb" fill-opacity="1" d="M0,96L48,85.3C96,75,192,53,288,48C384,43,480,53,576,69.3C672,85,768,107,864,101.3C960,96,1056,64,1152,48C1248,32,1344,32,1392,32L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path>
+            </svg>
+        </div>
+        
+        <div class="container mx-auto px-4 relative z-10 mt-12">
+            <h2 class="text-3xl font-bold text-center mb-4 fade-in">Contactez-nous</h2>
+            <div class="w-24 h-1 bg-white mx-auto mb-8"></div>
+            <div class="flex flex-col lg:flex-row">
+                <!-- Contact Form -->
+                <div class="lg:w-1/2 lg:pr-8 mb-8 lg:mb-0 fade-in">
+                    <form id="contact-form" class="bg-white/10 backdrop-blur-lg p-8 rounded-xl shadow-xl">
+                        <div class="mb-6">
+                            <label class="block text-white text-sm font-semibold mb-2" for="contact-name">Nom complet</label>
+                            <input class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-white placeholder-white/70" 
+                                   type="text" id="contact-name" placeholder="Votre nom">
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-white text-sm font-semibold mb-2" for="contact-email">Email</label>
+                            <input class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-white placeholder-white/70" 
+                                   type="email" id="contact-email" placeholder="votre@email.com">
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-white text-sm font-semibold mb-2" for="contact-subject">Sujet</label>
+                            <input class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-white placeholder-white/70" 
+                                   type="text" id="contact-subject" placeholder="Sujet de votre message">
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-white text-sm font-semibold mb-2" for="contact-message">Message</label>
+                            <textarea class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg h-32 resize-none focus:outline-none focus:ring-2 focus:ring-white/50 text-white placeholder-white/70" 
+                                      id="contact-message" placeholder="Votre message..."></textarea>
+                        </div>
+                        <button type="button" id="send-message" class="w-full bg-white text-[#0288D1] hover:bg-gray-100 py-3 rounded-lg transition duration-300 flex items-center justify-center shadow-lg font-semibold">
+                            <i class="fas fa-paper-plane mr-2"></i> Envoyer le message
+                        </button>
+                    </form>
+                    
+                    <!-- Success Message -->
+                    <div id="contact-success" class="mt-4 p-4 bg-green-100 text-green-700 rounded-lg flex items-center fade-in" style="display: none;">
+                        <i class="fas fa-check-circle text-xl mr-2"></i>
+                        <span>Merci pour votre message ! Nous vous répondrons dans les plus brefs délais.</span>
+                    </div>
+                </div>
+                
+                <!-- Contact Info -->
+                <div class="lg:w-1/2 lg:pl-8 fade-in">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Contact Card 1 -->
+                        <div class="contact-card bg-white/10 backdrop-blur-lg p-6 rounded-xl shadow-lg">
+                            <div class="rounded-full bg-white/20 w-14 h-14 flex items-center justify-center mb-4">
+                                <i class="fas fa-map-marker-alt text-2xl"></i>
+                            </div>
+                            <h4 class="font-bold text-lg mb-2">Adresse</h4>
+                            <p class="text-white/90">123 Avenue de la Gastronomie<br>75001 Paris, France</p>
+                        </div>
+                        
+                        <!-- Contact Card 2 -->
+                        <div class="contact-card bg-white/10 backdrop-blur-lg p-6 rounded-xl shadow-lg">
+                            <div class="rounded-full bg-white/20 w-14 h-14 flex items-center justify-center mb-4">
+                                <i class="fas fa-phone-alt text-2xl"></i>
+                            </div>
+                            <h4 class="font-bold text-lg mb-2">Téléphone</h4>
+                            <p class="text-white/90">+33 1 23 45 67 89</p>
+                        </div>
+                        
+                        <!-- Contact Card 3 -->
+                        <div class="contact-card bg-white/10 backdrop-blur-lg p-6 rounded-xl shadow-lg">
+                            <div class="rounded-full bg-white/20 w-14 h-14 flex items-center justify-center mb-4">
+                                <i class="fas fa-envelope text-2xl"></i>
+                            </div>
+                            <h4 class="font-bold text-lg mb-2">Email</h4>
+                            <p class="text-white/90">contact@octopos.com</p>
+                        </div>
+                        
+                        <!-- Contact Card 4 -->
+                        <div class="contact-card bg-white/10 backdrop-blur-lg p-6 rounded-xl shadow-lg">
+                            <div class="rounded-full bg-white/20 w-14 h-14 flex items-center justify-center mb-4">
+                                <i class="fas fa-clock text-2xl"></i>
+                            </div>
+                            <h4 class="font-bold text-lg mb-2">Heures d'ouverture</h4>
+                            <p class="text-white/90">Lun - Ven : 11h00 - 22h00<br>Sam - Dim : 10h00 - 23h00</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Map -->
+                    <div class="bg-white/10 backdrop-blur-lg p-6 rounded-xl shadow-lg">
+                        <h4 class="font-bold text-lg mb-4">Notre localisation</h4>
+                        <div id="map" class="rounded-lg overflow-hidden h-[300px] shadow-lg"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Social Media -->
+            <div class="mt-16 text-center">
+                <h4 class="font-bold text-xl mb-6">Suivez-nous sur les réseaux sociaux</h4>
+                <div class="flex justify-center space-x-6">
+                    <a href="#" class="bg-white/10 backdrop-blur-lg text-white hover:bg-white/30 w-14 h-14 rounded-full flex items-center justify-center hover:scale-110 transition duration-300 shadow-lg">
+                        <i class="fab fa-facebook-f text-xl"></i>
+                    </a>
+                    <a href="#" class="bg-white/10 backdrop-blur-lg text-white hover:bg-white/30 w-14 h-14 rounded-full flex items-center justify-center hover:scale-110 transition duration-300 shadow-lg">
+                        <i class="fab fa-instagram text-xl"></i>
+                    </a>
+                    <a href="#" class="bg-white/10 backdrop-blur-lg text-white hover:bg-white/30 w-14 h-14 rounded-full flex items-center justify-center hover:scale-110 transition duration-300 shadow-lg">
+                        <i class="fab fa-twitter text-xl"></i>
+                    </a>
+                    <a href="#" class="bg-white/10 backdrop-blur-lg text-white hover:bg-white/30 w-14 h-14 rounded-full flex items-center justify-center hover:scale-110 transition duration-300 shadow-lg">
+                        <i class="fab fa-linkedin-in text-xl"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Wave divider bottom -->
+        <div class="absolute bottom-0 left-0 right-0">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120">
+                <path fill="#1f2937" fill-opacity="1" d="M0,32L48,48C96,64,192,96,288,96C384,96,480,64,576,48C672,32,768,32,864,48C960,64,1056,96,1152,101.3C1248,107,1344,85,1392,74.7L1440,64L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white">
+        <div class="container mx-auto px-4 py-16">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="mb-8 md:mb-0">
+                    <div class="flex items-center mb-6">
+                        <div class="relative mr-2">
+                            <i class="fas fa-utensils text-[#4CAF50] text-3xl absolute -top-1 -left-1 opacity-30"></i>
+                            <i class="fas fa-utensils text-[#0288D1] text-3xl"></i>
+                        </div>
+                        <span class="text-3xl font-bold bg-gradient-to-r from-[#0288D1] to-[#4CAF50] bg-clip-text text-transparent">OctoPOS</span>
+                    </div>
+                    <p class="text-gray-400 mb-6 leading-relaxed">
+                        Le système de point de vente moderne conçu spécialement pour les restaurants, offrant une expérience utilisateur inégalée pour vous et vos clients.
+                    </p>
+                    <div class="flex space-x-5">
+                        <a href="#" class="text-gray-400 hover:text-[#0288D1] transition duration-300 text-xl">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-[#0288D1] transition duration-300 text-xl">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-[#0288D1] transition duration-300 text-xl">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-[#0288D1] transition duration-300 text-xl">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="mb-8 md:mb-0">
+                    <h3 class="text-xl font-bold mb-6 relative inline-block">
+                        Liens Rapides
+                        <div class="w-full h-1 bg-[#0288D1] absolute -bottom-1 left-0"></div>
+                    </h3>
+                    <ul class="space-y-4">
+                        <li>
+                            <a href="#about" class="text-gray-400 hover:text-white transition duration-300 flex items-center">
+                                <i class="fas fa-chevron-right text-xs mr-2 text-[#0288D1]"></i> À propos
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#menu" class="text-gray-400 hover:text-white transition duration-300 flex items-center">
+                                <i class="fas fa-chevron-right text-xs mr-2 text-[#0288D1]"></i> Menu
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#tables" class="text-gray-400 hover:text-white transition duration-300 flex items-center">
+                                <i class="fas fa-chevron-right text-xs mr-2 text-[#0288D1]"></i> Réservations
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#chefs" class="text-gray-400 hover:text-white transition duration-300 flex items-center">
+                                <i class="fas fa-chevron-right text-xs mr-2 text-[#0288D1]"></i> Nos Chefs
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#contact" class="text-gray-400 hover:text-white transition duration-300 flex items-center">
+                                <i class="fas fa-chevron-right text-xs mr-2 text-[#0288D1]"></i> Contact
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mb-8 md:mb-0">
+                    <h3 class="text-xl font-bold mb-6 relative inline-block">
+                        Heures d'ouverture
+                        <div class="w-full h-1 bg-[#4CAF50] absolute -bottom-1 left-0"></div>
+                    </h3>
+                    <ul class="space-y-4">
+                        <li class="flex justify-between border-b border-gray-700 pb-2">
+                            <span class="text-gray-400">Lundi - Vendredi:</span>
+                            <span class="text-white">11h00 - 22h00</span>
+                        </li>
+                        <li class="flex justify-between border-b border-gray-700 pb-2">
+                            <span class="text-gray-400">Samedi:</span>
+                            <span class="text-white">10h00 - 23h00</span>
+                        </li>
+                        <li class="flex justify-between border-b border-gray-700 pb-2">
+                            <span class="text-gray-400">Dimanche:</span>
+                            <span class="text-white">10h00 - 23h00</span>
+                        </li>
+                        <li class="flex justify-between border-b border-gray-700 pb-2">
+                            <span class="text-gray-400">Jours fériés:</span>
+                            <span class="text-white">12h00 - 22h00</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-6 relative inline-block">
+                        Newsletter
+                        <div class="w-full h-1 bg-gradient-to-r from-[#0288D1] to-[#4CAF50] absolute -bottom-1 left-0"></div>
+                    </h3>
+                    <p class="text-gray-400 mb-6 leading-relaxed">
+                        Inscrivez-vous pour recevoir les dernières nouvelles, offres spéciales et mises à jour du système OctoPOS.
+                    </p>
+                    <form class="flex flex-col space-y-4">
+                        <div class="relative">
+                            <input type="email" placeholder="Votre email" class="w-full px-5 py-4 rounded-full pr-12 bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#0288D1] text-white placeholder-gray-400">
+                            <button type="button" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-[#0288D1] to-[#4CAF50] w-10 h-10 rounded-full flex items-center justify-center hover:from-[#4CAF50] hover:to-[#0288D1] transition duration-300">
+                                <i class="fas fa-paper-plane text-white"></i>
+                            </button>
+                        </div>
+                        
+                    </form>
+                </div>
+            </div>
+            
+            
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Fade In Animation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map
+            const map = L.map('map').setView([48.8566, 2.3522], 15); // Paris coordinates
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Restaurant marker
+            const restaurantMarker = L.marker([48.8566, 2.3522]).addTo(map);
+            restaurantMarker.bindPopup("<b>OctoPOS Restaurant</b><br>123 Avenue de la Gastronomie<br>75001 Paris, France").openPopup();
+            
+            // Initial animations
+            const fadeElements = document.querySelectorAll('.fade-in');
+            setTimeout(() => {
+                fadeElements.forEach(element => {
+                    if (isElementInViewport(element)) {
+                        element.classList.add('active');
+                    }
+                });
+            }, 100);
+            
+            // Scroll animations
+            window.addEventListener('scroll', function() {
+                const fadeElements = document.querySelectorAll('.fade-in:not(.active)');
+                fadeElements.forEach(element => {
+                    if (isElementInViewport(element)) {
+                        element.classList.add('active');
+                    }
+                });
+            });
+            
+            // Check if element is in viewport
+            function isElementInViewport(el) {
+                const rect = el.getBoundingClientRect();
+                return (
+                    rect.top <= (window.innerHeight || document.documentElement.clientHeight) * 0.9 &&
+                    rect.bottom >= 0 &&
+                    rect.left <= (window.innerWidth || document.documentElement.clientWidth) &&
+                    rect.right >= 0
+                );
+            }
+            
+            // Menu filter
+            const filterButtons = document.querySelectorAll('.menu-filter');
+            const menuItems = document.querySelectorAll('.menu-item');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    
+                    // Update active button
+                    filterButtons.forEach(btn => {
+                        btn.classList.remove('bg-gradient-to-r', 'from-[#0288D1]', 'to-[#026da8]', 'text-white');
+                        btn.classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-100');
+                    });
+                    this.classList.remove('bg-white', 'text-gray-700', 'hover:bg-gray-100');
+                    this.classList.add('bg-gradient-to-r', 'from-[#0288D1]', 'to-[#026da8]', 'text-white');
+                    
+                    // Filter menu items
+                    menuItems.forEach(item => {
+                        if (category === 'all' || item.getAttribute('data-category') === category) {
+                            item.style.display = 'block';
+                            setTimeout(() => {
+                                item.classList.add('active');
+                            }, 50);
+                        } else {
+                            item.classList.remove('active');
+                            setTimeout(() => {
+                                item.style.display = 'none';
+                            }, 300);
+                        }
+                    });
+                });
+            });
+            
+            // Table selection
+            const availableTables = document.querySelectorAll('.table-available');
+            const reservationForm = document.getElementById('reservation-form');
+            const reservationSuccess = document.getElementById('reservation-success');
+            const selectedTableElement = document.getElementById('selected-table');
+            const cancelButton = document.getElementById('cancel-reservation');
+            const confirmButton = document.getElementById('confirm-reservation');
+            
+            availableTables.forEach(table => {
+                table.addEventListener('click', function() {
+                    const tableNumber = this.getAttribute('data-table');
+                    selectedTableElement.textContent = `Table ${tableNumber}`;
+                    reservationForm.style.display = 'block';
+                    reservationSuccess.style.display = 'none';
+                    
+                    // Add highlight effect
+                    availableTables.forEach(t => {
+                        t.classList.remove('ring-4', 'ring-yellow-300', 'ring-offset-2');
+                    });
+                    this.classList.add('ring-4', 'ring-yellow-300', 'ring-offset-2');
+                    
+                    // Smooth scroll to reservation form
+                    reservationForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+            });
+            
+            cancelButton.addEventListener('click', function() {
+                reservationForm.style.display = 'none';
+                // Remove highlight from tables
+                availableTables.forEach(t => {
+                    t.classList.remove('ring-4', 'ring-yellow-300', 'ring-offset-2');
+                });
+            });
+            
+            confirmButton.addEventListener('click', function() {
+                const nameInput = document.getElementById('name');
+                const emailInput = document.getElementById('email');
+                const dateInput = document.getElementById('date');
+                const timeInput = document.getElementById('time');
+                
+                // Simple validation
+                if (nameInput.value && emailInput.value && dateInput.value && timeInput.value) {
+                    reservationForm.style.display = 'none';
+                    reservationSuccess.style.display = 'flex';
+                    
+                    // Remove highlight from tables
+                    availableTables.forEach(t => {
+                        t.classList.remove('ring-4', 'ring-yellow-300', 'ring-offset-2');
+                    });
+                    
+                    // Reset form
+                    nameInput.value = '';
+                    emailInput.value = '';
+                    dateInput.value = '';
+                    timeInput.value = '';
+                    
+                    // Scroll to success message
+                    reservationSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    // Display validation error with shake animation
+                    const form = document.getElementById('reservation-form');
+                    form.classList.add('shake');
+                    setTimeout(() => {
+                        form.classList.remove('shake');
+                    }, 500);
+                    
+                    // Add error style to empty fields
+                    if (!nameInput.value) nameInput.classList.add('border-red-500');
+                    if (!emailInput.value) emailInput.classList.add('border-red-500');
+                    if (!dateInput.value) dateInput.classList.add('border-red-500');
+                    if (!timeInput.value) timeInput.classList.add('border-red-500');
+                    
+                    // Remove error style when typing
+                    const inputs = [nameInput, emailInput, dateInput, timeInput];
+                    inputs.forEach(input => {
+                        input.addEventListener('input', function() {
+                            if (this.value) {
+                                this.classList.remove('border-red-500');
+                            }
+                        });
+                    });
+                }
+            });
+            
+            // Contact form
+            const sendMessageButton = document.getElementById('send-message');
+            const contactSuccess = document.getElementById('contact-success');
+            
+            sendMessageButton.addEventListener('click', function() {
+                const nameInput = document.getElementById('contact-name');
+                const emailInput = document.getElementById('contact-email');
+                const subjectInput = document.getElementById('contact-subject');
+                const messageInput = document.getElementById('contact-message');
+                
+                // Simple validation
+                if (nameInput.value && emailInput.value && subjectInput.value && messageInput.value) {
+                    contactSuccess.style.display = 'flex';
+                    
+                    // Reset form
+                    nameInput.value = '';
+                    emailInput.value = '';
+                    subjectInput.value = '';
+                    messageInput.value = '';
+                    
+                    // Scroll to success message
+                    contactSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Hide success message after 5 seconds
+                    setTimeout(() => {
+                        contactSuccess.style.display = 'none';
+                    }, 5000);
+                } else {
+                    // Display validation error
+                    const form = document.getElementById('contact-form');
+                    form.classList.add('shake');
+                    setTimeout(() => {
+                        form.classList.remove('shake');
+                    }, 500);
+                    
+                    // Add error style to empty fields
+                    if (!nameInput.value) nameInput.classList.add('border-red-500');
+                    if (!emailInput.value) emailInput.classList.add('border-red-500');
+                    if (!subjectInput.value) subjectInput.classList.add('border-red-500');
+                    if (!messageInput.value) messageInput.classList.add('border-red-500');
+                    
+                    // Remove error style when typing
+                    const inputs = [nameInput, emailInput, subjectInput, messageInput];
+                    inputs.forEach(input => {
+                        input.addEventListener('input', function() {
+                            if (this.value) {
+                                this.classList.remove('border-red-500');
+                            }
+                        });
+                    });
+                }
+            });
+            
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80, // Adjust for fixed navbar
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            // Add shake animation style
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes shake {
+                    0% { transform: translateX(0); }
+                    25% { transform: translateX(-10px); }
+                    50% { transform: translateX(10px); }
+                    75% { transform: translateX(-10px); }
+                    100% { transform: translateX(0); }
+                }
+                .shake {
+                    animation: shake 0.5s ease-in-out;
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>
