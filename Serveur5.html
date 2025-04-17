@@ -1,0 +1,2593 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="OctoPOS - Système de point de vente pour serveurs">
+    <title>OctoPOS | Interface Serveur</title>
+
+    <!-- Polices -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <style>
+        :root {
+            /* Couleurs principales */
+            --primary: #2563EB;
+            --primary-light: #DBEAFE;
+            --primary-dark: #1D4ED8;
+            --secondary: #10B981;
+            --secondary-light: #D1FAE5;
+            --secondary-dark: #059669;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --success: #10B981;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+            
+            /* Mode clair */
+            --bg-color: #F9FAFB;
+            --card-bg: #FFFFFF;
+            --text-color: var(--gray-800);
+            --text-muted: var(--gray-500);
+            --border-color: var(--gray-200);
+            
+            /* Mesures */
+            --touch-target: 44px;
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-full: 9999px;
+            
+            /* Ombres */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            
+            /* Z-index */
+            --z-header: 10;
+            --z-modal: 20;
+            --z-overlay: 30;
+        }
+        
+        /* Mode sombre */
+        .dark-mode {
+            --bg-color: #111827;
+            --card-bg: #1F2937;
+            --text-color: #F9FAFB;
+            --text-muted: #D1D5DB;
+            --border-color: #374151;
+        }
+        
+        /* Mode contraste élevé pour l'extérieur */
+        .high-contrast {
+            --primary: #0047AB;
+            --primary-light: #BFDBFE;
+            --text-color: #000000;
+            --text-muted: #333333;
+            --bg-color: #FFFFFF;
+            --border-color: #000000;
+            --card-bg: #FFFFFF;
+        }
+        
+        /* Reset CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+        }
+        
+        body {
+            font-family: 'Nunito', -apple-system, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        
+        /* Layout de base */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: var(--z-header);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-icon {
+            position: relative;
+            margin-right: 0.5rem;
+        }
+        
+        .logo-icon i {
+            font-size: 1.5rem;
+        }
+        
+        .logo-icon i:first-child {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            color: var(--secondary);
+            opacity: 0.3;
+        }
+        
+        .logo-icon i:last-child {
+            position: relative;
+            color: var(--primary);
+        }
+        
+        .logo-text {
+            font-weight: 800;
+            font-size: 1.25rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .datetime {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+        
+        .header-buttons {
+            display: flex;
+            align-items: center;
+        }
+        
+        .header-button {
+            width: var(--touch-target);
+            height: var(--touch-target);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 0.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .header-button.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+        
+        .header-button .badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: var(--danger);
+            color: white;
+            font-size: 0.7rem;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            padding-left: 0.75rem;
+            margin-left: 0.75rem;
+            border-left: 1px solid var(--border-color);
+        }
+        
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 0.75rem;
+        }
+        
+        .user-details {
+            display: none;
+        }
+        
+        @media (min-width: 640px) {
+            .user-details {
+                display: block;
+            }
+            
+            .user-name {
+                font-weight: 700;
+                font-size: 0.875rem;
+                line-height: 1.25;
+            }
+            
+            .user-role {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+        }
+        
+        /* Onglets */
+        .tabs {
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.25rem;
+            white-space: nowrap;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .tab i {
+            margin-right: 0.5rem;
+        }
+        
+        /* Content */
+        .main-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .tab-content {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            padding: var(--spacing-md);
+            overflow-y: auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Table Grid */
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .view-toggle {
+            display: flex;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+        
+        .view-btn {
+            padding: 0.5rem 0.75rem;
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        
+        .view-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .status-legend {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+        }
+        
+        .status-color {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            margin-right: 0.375rem;
+        }
+        
+        .color-free {
+            background-color: var(--success);
+        }
+        
+        .color-occupied {
+            background-color: var(--danger);
+        }
+        
+        .color-reserved {
+            background-color: var(--warning);
+        }
+        
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: var(--spacing-md);
+        }
+        
+        .table-item {
+            aspect-ratio: 1;
+            background-color: var(--card-bg);
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: var(--spacing-md);
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .table-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .table-item:active {
+            transform: scale(0.98);
+        }
+        
+        .table-free {
+            border: 2px solid var(--success);
+        }
+        
+        .table-occupied {
+            border: 2px solid var(--danger);
+        }
+        
+        .table-reserved {
+            border: 2px solid var(--warning);
+        }
+        
+        .table-urgent {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+        
+        .table-number {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .table-capacity {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+        
+        .table-time {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .table-occupied .table-time {
+            color: var(--danger);
+        }
+        
+        .table-reserved .table-time {
+            color: var(--warning);
+        }
+        
+        /* Order View */
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .table-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .table-icon {
+            width: 42px;
+            height: 42px;
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: var(--spacing-md);
+        }
+        
+        .table-number-info {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        
+        .table-meta {
+            display: flex;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+        
+        .table-meta span:not(:last-child):after {
+            content: "•";
+            margin: 0 0.5rem;
+        }
+        
+        .back-btn {
+            min-width: var(--touch-target);
+            height: var(--touch-target);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0 1rem;
+        }
+        
+        .back-btn i {
+            margin-right: 0.5rem;
+        }
+        
+        /* Search */
+        .search-container {
+            display: flex;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .search-box {
+            position: relative;
+            flex: 1;
+        }
+        
+        .search-input {
+            width: 100%;
+            height: var(--touch-target);
+            padding: 0 1rem 0 2.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+        
+        .voice-btn {
+            width: var(--touch-target);
+            height: var(--touch-target);
+            margin-left: 0.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        /* Categories */
+        .categories {
+            display: flex;
+            overflow-x: auto;
+            gap: 0.5rem;
+            margin-bottom: var(--spacing-md);
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding-bottom: 4px;
+        }
+        
+        .categories::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .category {
+            flex: 0 0 auto;
+            padding: 0.5rem 1rem;
+            background-color: var(--gray-100);
+            color: var(--text-muted);
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        
+        .category.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        /* Menu Grid */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: 5rem;
+        }
+        
+        .menu-item {
+            background-color: var(--card-bg);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+        
+        .menu-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .menu-item:active {
+            transform: scale(0.98);
+        }
+        
+        .menu-img {
+            width: 100%;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+        }
+        
+        .menu-badge {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .badge-allergic {
+            color: var(--danger);
+            animation: blink 2s infinite;
+        }
+        
+        .badge-vegan {
+            color: var(--success);
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .menu-content {
+            padding: 0.75rem;
+        }
+        
+        .menu-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            line-height: 1.2;
+        }
+        
+        .menu-price {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        /* Cart */
+        .cart {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            z-index: var(--z-header);
+            transform: translateY(calc(100% - 60px));
+            transition: transform 0.3s;
+        }
+        
+        .cart.expanded {
+            transform: translateY(0);
+        }
+        
+        .cart-handle {
+            width: 36px;
+            height: 5px;
+            background-color: var(--gray-300);
+            border-radius: 2.5px;
+            margin: 0.5rem auto;
+        }
+        
+        .cart-summary {
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .cart-title {
+            font-weight: 600;
+        }
+        
+        .cart-count {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-left: 0.25rem;
+        }
+        
+        .cart-total {
+            font-weight: 700;
+            color: var(--primary);
+            margin-right: 0.75rem;
+        }
+        
+        .cart-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .cart-content {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding: 0 1rem;
+        }
+        
+        .cart-item {
+            display: flex;
+            padding: 0.75rem 0;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .cart-item-details {
+            flex: 1;
+        }
+        
+        .cart-item-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .cart-item-options {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+        
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+        }
+        
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            background-color: var(--gray-100);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .qty-value {
+            width: 30px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .cart-footer {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .subtotal-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtotal-label {
+            color: var(--text-muted);
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .total-value {
+            font-size: 1.25rem;
+            color: var(--primary);
+        }
+        
+        .cart-actions {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .btn {
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            border: none;
+            color: white;
+        }
+        
+        .btn i {
+            margin-right: 0.5rem;
+        }
+        
+        /* Item Customization Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: var(--z-overlay);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            background-color: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            z-index: var(--z-modal);
+            opacity: 0;
+            visibility: hidden;
+            transition: transform 0.3s, opacity 0.3s, visibility 0.3s;
+            overflow-y: auto;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            background: none;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        
+        .modal-close:hover {
+            background-color: var(--gray-100);
+        }
+        
+        .option-section {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .option-title {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        
+        .option-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .option-item {
+            padding: 0.75rem;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        
+        .option-item.active {
+            background-color: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .extras-list {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+        
+        .extra-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            margin-bottom: 0.5rem;
+            border-radius: var(--radius-md);
+        }
+        
+        .extra-label {
+            display: flex;
+            align-items: center;
+        }
+        
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            margin-right: 0.75rem;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .checkbox.checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .checkbox.checked:after {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 2px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        
+        .extra-price {
+            font-weight: 600;
+        }
+        
+        .notes-field {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            resize: vertical;
+            min-height: 80px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            margin-top: 0.5rem;
+        }
+        
+        .notes-field:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: var(--spacing-md);
+        }
+        
+        .modal-actions .btn {
+            flex: 1;
+        }
+        
+        /* Payment section */
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .payment-method {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        
+        .payment-method.active {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+        
+        .payment-icon {
+            font-size: 2rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        
+        .payment-method.active .payment-icon {
+            color: var(--primary);
+        }
+        
+        .payment-name {
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .payment-summary {
+            background-color: var(--card-bg);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .summary-title {
+            font-weight: 700;
+            margin-bottom: var(--spacing-md);
+            font-size: 1.125rem;
+        }
+        
+        .amount-field {
+            position: relative;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .amount-field span {
+            position: absolute;
+            left: 1rem;
+            top: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .amount-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: right;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        .amount-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .numkey {
+            aspect-ratio: 1/0.75;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+        }
+        
+        .numkey:active {
+            background-color: var(--gray-100);
+        }
+        
+        .change-panel {
+            background-color: var(--secondary-light);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .change-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .change-label {
+            font-weight: 600;
+            color: var(--secondary-dark);
+        }
+        
+        .change-amount {
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--secondary-dark);
+        }
+        
+        .bills-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .bill {
+            padding: 0.5rem;
+            background-color: #E5F6FF;
+            border: 1px solid #A5DCFF;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            text-align: center;
+            min-width: 60px;
+        }
+        
+        .coin {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #FFF8E0;
+            border: 1px solid #FFE7A0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+        
+        .tip-option {
+            display: flex;
+            align-items: center;
+        }
+        
+        .tip-checkbox {
+            margin-right: 0.75rem;
+        }
+        
+        .tip-label {
+            color: var(--secondary-dark);
+            font-weight: 500;
+        }
+        
+        /* Receipt view */
+        .receipt {
+            max-width: 340px;
+            margin: 0 auto var(--spacing-lg);
+            background-color: var(--card-bg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .receipt-header {
+            padding: var(--spacing-md);
+            text-align: center;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        
+        .receipt-logo {
+            font-weight: 800;
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .receipt-restaurant {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .receipt-address,
+        .receipt-info {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+        
+        .receipt-body {
+            padding: var(--spacing-md);
+        }
+        
+        .receipt-items {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .receipt-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .item-qty {
+            min-width: 30px;
+        }
+        
+        .item-name {
+            flex: 1;
+        }
+        
+        .item-price {
+            min-width: 60px;
+            text-align: right;
+            font-weight: 500;
+        }
+        
+        .receipt-subtotals {
+            padding-top: var(--spacing-md);
+            border-top: 1px dashed var(--border-color);
+        }
+        
+        .receipt-footer {
+            padding: var(--spacing-md);
+            text-align: center;
+            border-top: 1px dashed var(--border-color);
+        }
+        
+        .receipt-message {
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .receipt-qr {
+            width: 100px;
+            height: 100px;
+            background-color: var(--gray-100);
+            margin: 0 auto var(--spacing-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .receipt-actions {
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-md);
+        }
+        
+        .action-btn {
+            flex: 1;
+            max-width: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .action-btn i {
+            margin-right: 0.5rem;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            display: flex;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: var(--z-header);
+        }
+        
+        .bottom-nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.75rem 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.75rem;
+        }
+        
+        .bottom-nav-item.active {
+            color: var(--primary);
+        }
+        
+        .bottom-nav-icon {
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .bottom-nav-badge {
+            position: absolute;
+            top: 4px;
+            right: calc(50% - 12px);
+            background-color: var(--danger);
+            color: white;
+            font-size: 0.625rem;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+        
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+            .tables-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .menu-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+            
+            .bottom-nav {
+                display: none;
+            }
+            
+            .tab-content {
+                padding-bottom: var(--spacing-md);
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .tab-content {
+                padding-bottom: 60px;
+            }
+            
+            .tab {
+                padding: 0.75rem 1rem;
+            }
+        }
+        
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 80px;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.3s forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-utensils"></i>
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="logo-text">OctoPOS</div>
+            </div>
+            
+            <div class="header-right">
+                <div class="datetime">2025-04-10 14:03:53</div>
+                
+                <div class="header-buttons">
+                    <button id="theme-toggle" class="header-button">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="contrast-toggle" class="header-button">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                    <button id="notifications" class="header-button">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                </div>
+                
+                <div class="user-info">
+                    <div class="avatar">HB</div>
+                    <div class="user-details">
+                        <div class="user-name">Hamza Br</div>
+                        <div class="user-role">Serveur</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Tabs Navigation -->
+        <div class="tabs">
+            <div class="tab active" data-tab="tables">
+                <i class="fas fa-th"></i> Tables
+            </div>
+            <div class="tab" data-tab="orders">
+                <i class="fas fa-utensils"></i> Commande
+            </div>
+            <div class="tab" data-tab="payment">
+                <i class="fas fa-cash-register"></i> Paiement
+            </div>
+            <div class="tab" data-tab="receipt">
+                <i class="fas fa-receipt"></i> Tickets
+            </div>
+            <div class="tab" data-tab="stats">
+                <i class="fas fa-chart-bar"></i> Stats
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Tables Tab Content -->
+            <div id="tables-tab" class="tab-content active">
+                <div class="table-controls">
+                    <div class="view-toggle">
+                        <button class="view-btn active">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button class="view-btn">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="status-legend">
+                        <div class="status-item">
+                            <div class="status-color color-free"></div>
+                            <span>Libre</span>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-color color-occupied"></div>
+                            <span>Occupée</span>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-color color-reserved"></div>
+                            <span>Réservée</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tables-grid">
+                    <!-- Table 1 -->
+                    <div class="table-item table-free" data-table="1">
+                        <div class="table-number">T1</div>
+                        <div class="table-capacity">4 pers.</div>
+                    </div>
+                    
+                    <!-- Table 2 -->
+                    <div class="table-item table-occupied" data-table="2">
+                        <div class="table-number">T2</div>
+                        <div class="table-capacity">2 pers.</div>
+                        <div class="table-time">35 min</div>
+                    </div>
+                    
+                    <!-- Table 3 -->
+                    <div class="table-item table-occupied table-urgent" data-table="3">
+                        <div class="table-number">T3</div>
+                        <div class="table-capacity">6 pers.</div>
+                        <div class="table-time">52 min</div>
+                    </div>
+                    
+                    <!-- Table 4 -->
+                    <div class="table-item table-reserved" data-table="4">
+                        <div class="table-number">T4</div>
+                        <div class="table-capacity">4 pers.</div>
+                        <div class="table-time">19:30</div>
+                    </div>
+                    
+                    <!-- Table 5 -->
+                    <div class="table-item table-occupied" data-table="5">
+                        <div class="table-number">T5</div>
+                        <div class="table-capacity">2 pers.</div>
+                        <div class="table-time">15 min</div>
+                    </div>
+                    
+                    <!-- Table 6 -->
+                    <div class="table-item table-free" data-table="6">
+                        <div class="table-number">T6</div>
+                        <div class="table-capacity">4 pers.</div>
+                    </div>
+                    
+                    <!-- Table 7 -->
+                    <div class="table-item table-reserved" data-table="7">
+                        <div class="table-number">T7</div>
+                        <div class="table-capacity">2 pers.</div>
+                        <div class="table-time">20:15</div>
+                    </div>
+                    
+                    <!-- Table 8 -->
+                    <div class="table-item table-free" data-table="8">
+                        <div class="table-number">T8</div>
+                        <div class="table-capacity">6 pers.</div>
+                    </div>
+                    
+                    <!-- Table 9 -->
+                    <div class="table-item table-occupied" data-table="9">
+                        <div class="table-number">T9</div>
+                        <div class="table-capacity">4 pers.</div>
+                        <div class="table-time">28 min</div>
+                    </div>
+                    
+                    <!-- Table 10 -->
+                    <div class="table-item table-occupied" data-table="10">
+                        <div class="table-number">T10</div>
+                        <div class="table-capacity">2 pers.</div>
+                        <div class="table-time">9 min</div>
+                    </div>
+                    
+                    <!-- Plus de tables peuvent être ajoutées ici -->
+                </div>
+            </div>
+            
+            <!-- Orders Tab Content -->
+            <div id="orders-tab" class="tab-content">
+                <div class="order-header">
+                    <div class="table-info">
+                        <div class="table-icon">
+                            <i class="fas fa-chair"></i>
+                        </div>
+                        <div>
+                            <div class="table-number-info">Table 3</div>
+                            <div class="table-meta">
+                                <span>6 personnes</span>
+                                <span>52 min</span>
+                                <span class="history-link">
+                                    <i class="fas fa-history"></i> Historique
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="back-to-tables" class="back-btn">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Retour</span>
+                    </button>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" placeholder="Rechercher un plat...">
+                    </div>
+                    <button class="voice-btn">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+                
+                <!-- Categories -->
+                <div class="categories">
+                    <button class="category active">Tous</button>
+                    <button class="category">Entrées</button>
+                    <button class="category">Plats</button>
+                    <button class="category">Desserts</button>
+                    <button class="category">Boissons</button>
+                    <button class="category">Vins</button>
+                    <button class="category">Menu du jour</button>
+                </div>
+                
+                <!-- Menu Grid -->
+                <div class="menu-grid">
+                    <!-- Menu item 1 -->
+                    <div class="menu-item" data-id="1">
+                        <img src="https://source.unsplash.com/800x600/?salad" alt="Salade César" class="menu-img">
+                        <div class="menu-badge badge-vegan">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <div class="menu-content">
+                            <div class="menu-title">Salade César</div>
+                            <div class="menu-price">14,50€</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Menu item 2 -->
+                    <div class="menu-item" data-id="2">
+                        <img src="https://source.unsplash.com/800x600/?soup" alt="Soupe à l'oignon" class="menu-img">
+                        <div class="menu-content">
+                            <div class="menu-title">Soupe à l'oignon</div>
+                            <div class="menu-price">10,50€</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Menu item 3 -->
+                    <div class="menu-item" data-id="3">
+                        <img src="https://source.unsplash.com/800x600/?steak" alt="Filet de Boeuf" class="menu-img">
+                        <div class="menu-content">
+                            <div class="menu-title">Filet de Boeuf</div>
+                            <div class="menu-price">26,90€</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Menu item 4 -->
+                    <div class="menu-item" data-id="4">
+                        <img src="https://source.unsplash.com/800x600/?risotto" alt="Risotto aux Cèpes" class="menu-img">
+                        <div class="menu-content">
+                            <div class="menu-title">Risotto aux Cèpes</div>
+                            <div class="menu-price">19,90€</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Menu item 5 -->
+                    <div class="menu-item" data-id="5">
+                        <img src="https://source.unsplash.com/800x600/?salmon" alt="Saumon Grillé" class="menu-img">
+                        <div class="menu-badge badge-allergic">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="menu-content">
+                            <div class="menu-title">Saumon Grillé</div>
+                            <div class="menu-price">22,50€</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Menu item 6 -->
+                    <div class="menu-item" data-id="6">
+                        <img src="https://source.unsplash.com/800x600/?dessert" alt="Crème Brûlée" class="menu-img">
+                        <div class="menu-content">
+                            <div class="menu-title">Crème Brûlée</div>
+                            <div class="menu-price">8,90€</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Tab Content -->
+            <div id="payment-tab" class="tab-content">
+                <h2 class="summary-title">Mode de paiement</h2>
+                
+                <div class="payment-methods">
+                    <div class="payment-method active" data-method="cash">
+                        <div class="payment-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="payment-name">Espèces</div>
+                    </div>
+                    
+                    <div class="payment-method" data-method="card">
+                        <div class="payment-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="payment-name">Carte Bancaire</div>
+                    </div>
+                    
+                    <div class="payment-method" data-method="split">
+                        <div class="payment-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="payment-name">Addition Partagée</div>
+                    </div>
+                    
+                    <div class="payment-method" data-method="mobile">
+                        <div class="payment-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="payment-name">Paiement Mobile</div>
+                    </div>
+                </div>
+                
+                <div class="payment-summary">
+                    <div class="summary-title">Récapitulatif</div>
+                    
+                    <div class="subtotal-row">
+                        <div class="subtotal-label">Table</div>
+                        <div>Table 3</div>
+                    </div>
+                    
+                    <div class="subtotal-row">
+                        <div class="subtotal-label">Articles</div>
+                        <div>5</div>
+                    </div>
+                    
+                    <div class="subtotal-row">
+                        <div class="subtotal-label">Sous-total</div>
+                        <div>66,30€</div>
+                    </div>
+                    
+                    <div class="subtotal-row">
+                        <div class="subtotal-label">TVA (10%)</div>
+                        <div>6,63€</div>
+                    </div>
+                    
+                    <div class="total-row">
+                        <div>Total</div>
+                        <div class="total-value">72,93€</div>
+                    </div>
+                </div>
+                
+                <!-- Cash Payment Section -->
+                <div class="amount-field">
+                    <span>€</span>
+                    <input type="text" class="amount-input" value="80,00">
+                </div>
+                
+                <div class="numpad">
+                    <button class="numkey">7</button>
+                    <button class="numkey">8</button>
+                    <button class="numkey">9</button>
+                    <button class="numkey">4</button>
+                    <button class="numkey">5</button>
+                    <button class="numkey">6</button>
+                    <button class="numkey">1</button>
+                    <button class="numkey">2</button>
+                    <button class="numkey">3</button>
+                    <button class="numkey">0</button>
+                    <button class="numkey">00</button>
+                    <button class="numkey">C</button>
+                </div>
+                
+                <div class="change-panel">
+                    <div class="change-title">
+                        <div class="change-label">Monnaie à rendre</div>
+                        <div class="change-amount">7,07€</div>
+                    </div>
+                    
+                    <div class="bills-display">
+                        <div class="bill">5€</div>
+                        <div class="bill">2€</div>
+                        <div class="coin">0.05€</div>
+                        <div class="coin">0.02€</div>
+                    </div>
+                    
+                    <div class="tip-option">
+                        <input type="checkbox" class="tip-checkbox" id="round-tip">
+                        <label for="round-tip" class="tip-label">Arrondir pour pourboire (7,07€)</label>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn btn-outline">
+                        <i class="fas fa-times"></i> Annuler
+                    </button>
+                    <button class="btn btn-primary" id="complete-payment">
+                        <i class="fas fa-check"></i> Valider
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Receipt Tab Content -->
+            <div id="receipt-tab" class="tab-content">
+                <div class="receipt">
+                    <div class="receipt-header">
+                        <div class="receipt-logo">OctoPOS</div>
+                        <div class="receipt-restaurant">Le Bistro Parisien</div>
+                        <div class="receipt-address">123 Avenue des Champs-Élysées, 75008 Paris</div>
+                        <div class="receipt-info">Tel: 01 23 45 67 89</div>
+                        <div class="receipt-info">Table: 3 - Serveur: Hamza B.</div>
+                        <div class="receipt-info">2025-04-10 14:03:53</div>
+                    </div>
+                    
+                    <div class="receipt-body">
+                        <div class="receipt-items">
+                            <div class="receipt-item">
+                                <div class="item-qty">1x</div>
+                                <div class="item-name">Filet de Boeuf</div>
+                                <div class="item-price">26,90€</div>
+                            </div>
+                            <div class="receipt-item">
+                                <div class="item-qty">1x</div>
+                                <div class="item-name">Risotto aux Cèpes</div>
+                                <div class="item-price">19,90€</div>
+                            </div>
+                            <div class="receipt-item">
+                                <div class="item-qty">2x</div>
+                                <div class="item-name">Verre de Vin Rouge</div>
+                                <div class="item-price">15,00€</div>
+                            </div>
+                            <div class="receipt-item">
+                                <div class="item-qty">1x</div>
+                                <div class="item-name">Eau Minérale</div>
+                                <div class="item-price">4,50€</div>
+                            </div>
+                        </div>
+                        
+                        <div class="receipt-subtotals">
+                            <div class="receipt-item">
+                                <div class="item-name">Sous-total:</div>
+                                <div class="item-price">66,30€</div>
+                            </div>
+                            <div class="receipt-item">
+                                <div class="item-name">TVA (10%):</div>
+                                <div class="item-price">6,63€</div>
+                            </div>
+                            <div class="receipt-item">
+                                <div class="item-name">TOTAL:</div>
+                                <div class="item-price">72,93€</div>
+                            </div>
+                            <div class="receipt-item">
+                                <div class="item-name">Payé (Espèces):</div>
+                                <div class="item-price">80,00€</div>
+                            </div>
+                            <div class="receipt-item">
+                                <div class="item-name">Rendu:</div>
+                                <div class="item-price">7,07€</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="receipt-footer">
+                        <div class="receipt-message">Merci de votre visite!</div>
+                        <div class="receipt-message">TVA N° FR123456789</div>
+                        <div class="receipt-message">Merci de votre visite!</div>
+                        <div class="receipt-message">TVA N° FR123456789</div>
+                        <div class="receipt-qr">QR Code</div>
+                        <div class="receipt-message">Scannez pour votre avis</div>
+                    </div>
+                </div>
+                
+                <div class="receipt-actions">
+                    <button class="action-btn btn-primary">
+                        <i class="fas fa-print"></i> Imprimer
+                    </button>
+                    <button class="action-btn btn-outline">
+                        <i class="fas fa-envelope"></i> Email
+                    </button>
+                    <button class="action-btn btn-outline">
+                        <i class="fas fa-mobile-alt"></i> SMS
+                    </button>
+                </div>
+                
+                <div class="payment-summary">
+                    <div class="summary-title" style="color: var(--success);">
+                        <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
+                        Paiement réussi!
+                    </div>
+                    
+                    <div class="subtotal-row">
+                        <div>La table est maintenant disponible pour de nouveaux clients.</div>
+                    </div>
+                    
+                    <div class="modal-actions" style="margin-top: 1.5rem;">
+                        <button class="btn btn-outline">
+                            <i class="fas fa-broom"></i> Nettoyer la table
+                        </button>
+                        <button class="btn btn-primary" id="back-to-tables-btn">
+                            <i class="fas fa-th"></i> Retour aux tables
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stats Tab Content -->
+            <div id="stats-tab" class="tab-content">
+                <div class="payment-summary">
+                    <div class="summary-title">Statistiques du jour</div>
+                    
+                    <div class="subtotal-row">
+                        <div class="subtotal-label">Tables servies</div>
+                        <div>12</div>
+                    </div>
+                    
+                    <div class="subtotal-row">
+                        <div class="subtotal-label">Clients servis</div>
+                        <div>43</div>
+                    </div>
+                    
+                    <div class="subtotal-row">
+                        <div class="subtotal-label">Chiffre d'affaires</div>
+                        <div>678,50€</div>
+                    </div>
+                    
+                    <div class="subtotal-row">
+                        <div class="subtotal-label">Ticket moyen</div>
+                        <div>56,54€</div>
+                    </div>
+                    
+                    <div class="subtotal-row">
+                        <div class="subtotal-label">Pourboires</div>
+                        <div>32,70€</div>
+                    </div>
+                </div>
+                
+                <div class="payment-summary">
+                    <div class="summary-title">Performance</div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <div class="subtotal-row">
+                            <div class="subtotal-label">Temps de service</div>
+                            <div>2.8 min (rapide)</div>
+                        </div>
+                        <div style="height: 8px; width: 100%; background-color: var(--gray-100); border-radius: 4px; margin-top: 0.25rem;">
+                            <div style="height: 100%; width: 85%; background-color: var(--success); border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <div class="subtotal-row">
+                            <div class="subtotal-label">Satisfaction client</div>
+                            <div>4.8/5 ⭐</div>
+                        </div>
+                        <div style="height: 8px; width: 100%; background-color: var(--gray-100); border-radius: 4px; margin-top: 0.25rem;">
+                            <div style="height: 100%; width: 96%; background-color: var(--primary); border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="subtotal-row">
+                            <div class="subtotal-label">Efficacité commandes</div>
+                            <div>97%</div>
+                        </div>
+                        <div style="height: 8px; width: 100%; background-color: var(--gray-100); border-radius: 4px; margin-top: 0.25rem;">
+                            <div style="height: 100%; width: 97%; background-color: var(--secondary); border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cart Panel -->
+        <div class="cart">
+            <div class="cart-handle"></div>
+            
+            <div class="cart-summary">
+                <div>
+                    <span class="cart-title">Table 3</span>
+                    <span class="cart-count">(5 articles)</span>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <div class="cart-total">72,93€</div>
+                    <button class="cart-btn">Voir</button>
+                </div>
+            </div>
+            
+            <div class="cart-content">
+                <div class="cart-item">
+                    <div class="cart-item-details">
+                        <div class="cart-item-title">Filet de Boeuf</div>
+                        <div class="cart-item-options">Saignant, Frites, Sans sel</div>
+                        <div class="cart-item-price">26,90€</div>
+                    </div>
+                    <div class="cart-item-actions">
+                        <button class="qty-btn">-</button>
+                        <span class="qty-value">1</span>
+                        <button class="qty-btn">+</button>
+                    </div>
+                </div>
+                
+                <div class="cart-item">
+                    <div class="cart-item-details">
+                        <div class="cart-item-title">Risotto aux Cèpes</div>
+                        <div class="cart-item-options">Sans parmesan</div>
+                        <div class="cart-item-price">19,90€</div>
+                    </div>
+                    <div class="cart-item-actions">
+                        <button class="qty-btn">-</button>
+                        <span class="qty-value">1</span>
+                        <button class="qty-btn">+</button>
+                    </div>
+                </div>
+                
+                <div class="cart-item">
+                    <div class="cart-item-details">
+                        <div class="cart-item-title">Verre de Vin Rouge</div>
+                        <div class="cart-item-options">Côtes du Rhône</div>
+                        <div class="cart-item-price">15,00€</div>
+                    </div>
+                    <div class="cart-item-actions">
+                        <button class="qty-btn">-</button>
+                        <span class="qty-value">2</span>
+                        <button class="qty-btn">+</button>
+                    </div>
+                </div>
+                
+                <div class="cart-item">
+                    <div class="cart-item-details">
+                        <div class="cart-item-title">Eau Minérale</div>
+                        <div class="cart-item-options">50cl</div>
+                        <div class="cart-item-price">4,50€</div>
+                    </div>
+                    <div class="cart-item-actions">
+                        <button class="qty-btn">-</button>
+                        <span class="qty-value">1</span>
+                        <button class="qty-btn">+</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cart-footer">
+                <div class="subtotal-row">
+                    <span>Sous-total</span>
+                    <span>66,30€</span>
+                </div>
+                <div class="subtotal-row">
+                    <span>TVA (10%)</span>
+                    <span>6,63€</span>
+                </div>
+                <div class="total-row">
+                    <span>Total</span>
+                    <span class="total-value">72,93€</span>
+                </div>
+                <div class="cart-actions">
+                    <button class="btn btn-outline">Annuler</button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Envoyer en cuisine
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Item Customization Modal -->
+        <div class="modal-overlay" id="customization-overlay">
+            <div class="modal" id="customization-modal">
+                <div class="modal-header">
+                    <h3 class="modal-title">Filet de Boeuf</h3>
+                    <button class="modal-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="option-section">
+                    <div class="option-title">Cuisson</div>
+                    <div class="option-grid">
+                        <div class="option-item">Bleu</div>
+                        <div class="option-item active">Saignant</div>
+                        <div class="option-item">À point</div>
+                        <div class="option-item">Bien cuit</div>
+                    </div>
+                </div>
+                
+                <div class="option-section">
+                    <div class="option-title">Accompagnement</div>
+                    <div class="option-grid">
+                        <div class="option-item active">Frites</div>
+                        <div class="option-item">Légumes</div>
+                        <div class="option-item">Purée</div>
+                        <div class="option-item">Gratin</div>
+                    </div>
+                </div>
+                
+                <div class="option-section">
+                    <div class="option-title">Extras</div>
+                    <div class="extras-list">
+                        <div class="extra-item">
+                            <div class="extra-label">
+                                <div class="checkbox"></div>
+                                <span>Sauce béarnaise</span>
+                            </div>
+                            <div class="extra-price">2,50€</div>
+                        </div>
+                        <div class="extra-item">
+                            <div class="extra-label">
+                                <div class="checkbox"></div>
+                                <span>Supplément frites</span>
+                            </div>
+                            <div class="extra-price">3,00€</div>
+                        </div>
+                        <div class="extra-item">
+                            <div class="extra-label">
+                                <div class="checkbox checked"></div>
+                                <span>Sans sel</span>
+                            </div>
+                            <div class="extra-price"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="option-section">
+                    <div class="option-title">Notes spéciales</div>
+                    <textarea class="notes-field" placeholder="Ajouter des instructions spéciales..."></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn btn-outline">Annuler</button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Ajouter à la commande
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <a href="#" class="bottom-nav-item active" data-tab="tables">
+                <i class="fas fa-th bottom-nav-icon"></i>
+                <span>Tables</span>
+            </a>
+            <a href="#" class="bottom-nav-item" data-tab="orders">
+                <i class="fas fa-utensils bottom-nav-icon"></i>
+                <span>Commande</span>
+            </a>
+            <a href="#" class="bottom-nav-item" data-tab="payment">
+                <i class="fas fa-cash-register bottom-nav-icon"></i>
+                <span>Paiement</span>
+            </a>
+            <a href="#" class="bottom-nav-item" data-tab="receipt">
+                <i class="fas fa-receipt bottom-nav-icon"></i>
+                <span>Tickets</span>
+            </a>
+            <a href="#" class="bottom-nav-item" data-tab="stats">
+                <div style="position: relative;">
+                    <i class="fas fa-chart-bar bottom-nav-icon"></i>
+                    <span class="bottom-nav-badge">3</span>
+                </div>
+                <span>Stats</span>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Date et heure actuelles
+            function updateDateTime() {
+                const datetimeElement = document.querySelector('.datetime');
+                if (datetimeElement) {
+                    const now = new Date();
+                    const formattedDate = now.toISOString().replace('T', ' ').substring(0, 19);
+                    datetimeElement.textContent = formattedDate;
+                }
+            }
+            
+            // Mettre à jour l'heure toutes les secondes
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+            
+            // Navigation par onglets
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+            
+            function activateTab(tabId) {
+                // Désactiver tous les onglets
+                tabs.forEach(tab => tab.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                bottomNavItems.forEach(item => item.classList.remove('active'));
+                
+                // Activer l'onglet sélectionné
+                document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+                document.querySelector(`.bottom-nav-item[data-tab="${tabId}"]`).classList.add('active');
+            }
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    activateTab(tabId);
+                });
+            });
+            
+            bottomNavItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tabId = item.getAttribute('data-tab');
+                    activateTab(tabId);
+                });
+            });
+            
+            // Sélection des tables
+            const tableItems = document.querySelectorAll('.table-item');
+            
+            tableItems.forEach(table => {
+                table.addEventListener('click', () => {
+                    const tableNumber = table.getAttribute('data-table');
+                    
+                    // Mettre à jour l'en-tête de la commande
+                    document.querySelector('.table-number-info').textContent = `Table ${tableNumber}`;
+                    
+                    // Naviguer vers l'onglet des commandes
+                    activateTab('orders');
+                    
+                    // Feedback haptique sur les appareils mobiles
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(50);
+                    }
+                });
+            });
+            
+            // Bouton retour vers les tables
+            document.getElementById('back-to-tables').addEventListener('click', () => {
+                activateTab('tables');
+            });
+            
+            // Sélection des articles du menu
+            const menuItems = document.querySelectorAll('.menu-item');
+            const customizationOverlay = document.getElementById('customization-overlay');
+            const customizationModal = document.getElementById('customization-modal');
+            
+            menuItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    // Afficher la modal de personnalisation
+                    customizationOverlay.classList.add('active');
+                    customizationModal.classList.add('active');
+                    
+                    // Mettre à jour le nom de l'article dans la modal
+                    const itemName = item.querySelector('.menu-title').textContent;
+                    document.querySelector('.modal-title').textContent = itemName;
+                    
+                    // Feedback haptique
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(50);
+                    }
+                });
+            });
+            
+            // Fermer la modal de personnalisation
+            const modalClose = document.querySelector('.modal-close');
+            
+            modalClose.addEventListener('click', () => {
+                customizationOverlay.classList.remove('active');
+                customizationModal.classList.remove('active');
+            });
+            
+            customizationOverlay.addEventListener('click', (e) => {
+                if (e.target === customizationOverlay) {
+                    customizationOverlay.classList.remove('active');
+                    customizationModal.classList.remove('active');
+                }
+            });
+            
+            // Options de personnalisation
+            const optionItems = document.querySelectorAll('.option-item');
+            
+            optionItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    // Désactiver les autres options du même groupe
+                    const siblings = Array.from(item.parentNode.children);
+                    siblings.forEach(sibling => {
+                        sibling.classList.remove('active');
+                    });
+                    
+                    // Activer l'option sélectionnée
+                    item.classList.add('active');
+                    
+                    // Feedback haptique
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(30);
+                    }
+                });
+            });
+            
+            // Checkboxes
+            const checkboxes = document.querySelectorAll('.checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('click', () => {
+                    checkbox.classList.toggle('checked');
+                    
+                    // Feedback haptique
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(30);
+                    }
+                });
+            });
+            
+            // Ajouter à la commande
+            const addToCartButtons = document.querySelectorAll('.modal-actions .btn-primary');
+            
+            addToCartButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Fermer la modal
+                    customizationOverlay.classList.remove('active');
+                    customizationModal.classList.remove('active');
+                    
+                    // Afficher le panier s'il est replié
+                    const cart = document.querySelector('.cart');
+                    if (!cart.classList.contains('expanded')) {
+                        cart.classList.add('expanded');
+                    }
+                    
+                    // Notification de succès
+                    showToast('Article ajouté à la commande');
+                    
+                    // Feedback haptique
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate([30, 30, 30]);
+                    }
+                });
+            });
+            
+            // Gestion du panier
+            const cartHandle = document.querySelector('.cart-handle');
+            const cart = document.querySelector('.cart');
+            const cartViewButton = document.querySelector('.cart-btn');
+            
+            cartHandle.addEventListener('click', () => {
+                cart.classList.toggle('expanded');
+            });
+            
+            cartViewButton.addEventListener('click', () => {
+                if (!cart.classList.contains('expanded')) {
+                    cart.classList.add('expanded');
+                }
+            });
+            
+            // Gestion des quantités
+            const qtyButtons = document.querySelectorAll('.qty-btn');
+            
+            qtyButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const qtyValue = button.parentNode.querySelector('.qty-value');
+                    let quantity = parseInt(qtyValue.textContent);
+                    
+                    if (button.textContent === '+') {
+                        quantity++;
+                    } else if (button.textContent === '-' && quantity > 1) {
+                        quantity--;
+                    }
+                    
+                    qtyValue.textContent = quantity;
+                    
+                    // Feedback haptique
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(30);
+                    }
+                });
+            });
+            
+            // Mode sombre
+            const themeToggle = document.getElementById('theme-toggle');
+            
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                themeToggle.classList.toggle('active');
+                
+                const isDark = document.body.classList.contains('dark-mode');
+                themeToggle.innerHTML = isDark ? 
+                    '<i class="fas fa-sun"></i>' : 
+                    '<i class="fas fa-moon"></i>';
+                
+                // Sauvegarder la préférence
+                localStorage.setItem('dark-mode', isDark ? 'true' : 'false');
+                
+                // Feedback haptique
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(30);
+                }
+            });
+            
+            // Vérifier la préférence sauvegardée
+            if (localStorage.getItem('dark-mode') === 'true') {
+                document.body.classList.add('dark-mode');
+                themeToggle.classList.add('active');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+            
+            // Mode contraste élevé (pour terrasse)
+            const contrastToggle = document.getElementById('contrast-toggle');
+            
+            contrastToggle.addEventListener('click', () => {
+                document.body.classList.toggle('high-contrast');
+                contrastToggle.classList.toggle('active');
+                
+                // Feedback haptique
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(30);
+                }
+            });
+            
+            // Numpad pour le paiement
+            const numkeys = document.querySelectorAll('.numkey');
+            const amountInput = document.querySelector('.amount-input');
+            
+            numkeys.forEach(key => {
+                key.addEventListener('click', () => {
+                    const value = key.textContent;
+                    
+                    if (value === 'C') {
+                        // Effacer
+                        amountInput.value = '0,00';
+                    } else {
+                        // Obtenir la valeur actuelle sans formatage
+                        let currentValue = amountInput.value.replace(',', '.');
+                        
+                        if (currentValue === '0,00' || currentValue === '0.00') {
+                            if (value === '00') {
+                                currentValue = '0';
+                            } else {
+                                currentValue = value;
+                            }
+                        } else {
+                            currentValue += value;
+                        }
+                        
+                        // Mettre à jour avec formatage
+                        const numValue = parseFloat(currentValue);
+                        if (!isNaN(numValue)) {
+                            amountInput.value = numValue.toFixed(2).replace('.', ',');
+                            
+                            // Mettre à jour le montant à rendre
+                            const total = 72.93; // Total fixe pour la démo
+                            const change = (numValue - total).toFixed(2);
+                            if (change >= 0) {
+                                document.querySelector('.change-amount').textContent = change.replace('.', ',') + '€';
+                            }
+                        }
+                    }
+                    
+                    // Feedback haptique
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(30);
+                    }
+                });
+            });
+            
+            // Compléter le paiement
+            document.getElementById('complete-payment').addEventListener('click', () => {
+                activateTab('receipt');
+                
+                // Notification de succès
+                showToast('Paiement effectué avec succès!');
+                
+                // Feedback haptique
+                if ('vibrate' in navigator) {
+                    navigator.vibrate([50, 100, 50]);
+                }
+            });
+            
+            // Retour aux tables depuis le reçu
+            document.getElementById('back-to-tables-btn').addEventListener('click', () => {
+                activateTab('tables');
+            });
+            
+            // Recherche vocale
+            const voiceButton = document.querySelector('.voice-btn');
+            
+            voiceButton.addEventListener('click', () => {
+                showToast('Dictez votre recherche...');
+                
+                // Simuler une recherche vocale après un délai
+                setTimeout(() => {
+                    document.querySelector('.search-input').value = 'Filet de bœuf';
+                    showToast('Recherche de "Filet de bœuf"');
+                }, 2000);
+                
+                // Feedback haptique
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(100);
+                }
+            });
+            
+            // Sélection des catégories
+            const categories = document.querySelectorAll('.category');
+            
+            categories.forEach(category => {
+                category.addEventListener('click', () => {
+                    // Désélectionner les autres catégories
+                    categories.forEach(cat => {
+                        cat.classList.remove('active');
+                    });
+                    
+                    // Sélectionner cette catégorie
+                    category.classList.add('active');
+                    
+                    // Filtrer les articles (serait implémenté dans une application réelle)
+                    showToast(`Catégorie: ${category.textContent}`);
+                    
+                    // Feedback haptique
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(30);
+                    }
+                });
+            });
+            
+            // Afficher une notification toast
+            function showToast(message, duration = 3000) {
+                // Supprimer les toasts existants
+                const existingToasts = document.querySelectorAll('.toast');
+                existingToasts.forEach(toast => {
+                    document.body.removeChild(toast);
+                });
+                
+                // Créer un nouvel élément toast
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.textContent = message;
+                
+                // Ajouter au document
+                document.body.appendChild(toast);
+                
+                // Afficher avec animation
+                setTimeout(() => {
+                    toast.style.opacity = '1';
+                }, 10);
+                
+                // Masquer et supprimer après la durée spécifiée
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 300);
+                }, duration);
+            }
+            
+            // Démarrer avec un toast de bienvenue
+            setTimeout(() => {
+                showToast('Bienvenue Hamza! (2025-04-10 14:12:00)');
+            }, 1000);
+            
+            // Méthodes de paiement
+            const paymentMethods = document.querySelectorAll('.payment-method');
+            
+            paymentMethods.forEach(method => {
+                method.addEventListener('click', () => {
+                    // Désactiver toutes les méthodes
+                    paymentMethods.forEach(m => {
+                        m.classList.remove('active');
+                    });
+                    
+                    // Activer la méthode sélectionnée
+                    method.classList.add('active');
+                    
+                    // Feedback haptique
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(30);
+                    }
+                });
+            });
+            
+            // Animation des tables urgentes
+            document.querySelectorAll('.table-urgent').forEach(table => {
+                table.style.animation = 'pulse 1.5s infinite';
+            });
+        });
+    </script>
+</body>
+</html>
