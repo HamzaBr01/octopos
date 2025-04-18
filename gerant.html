@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OctoPOS - Tableau de bord gérant pour la supervision opérationnelle de restaurant">
+    <title>OctoPOS Dashboard | Gérant</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    
+    <!-- FullCalendar for scheduling -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    
+    <!-- DragSort for visual planning -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
+    <!-- Speech Synthesis API Polyfill -->
+    <script src="https://cdn.jsdelivr.net/npm/speech-synthesis-polyfill@0.1.0/dist/speech-synthesis-polyfill.min.js"></script>
+    
+    <style>
+        :root {
+            /* Light Theme Colors */
+            --primary: #0288D1;
+            --primary-dark: #026da8;
+            --secondary: #4CAF50;
+            --secondary-dark: #2E7D32;
+            --accent: #FFC107;
+            --danger: #F44336;
+            --success: #4CAF50;
+            --warning: #FF9800;
+            --info: #2196F3;
+            --dark: #1E293B;
+            --light: #F8FAFC;
+            --gray: #64748B;
+            --border-color: #E2E8F0;
+            
+            --background: #F1F5F9;
+            --card-bg: #FFFFFF;
+            --text-primary: #334155;
+            --text-secondary: #64748B;
+            --header-bg: #FFFFFF;
+            --sidebar-bg: #FFFFFF;
+            --crisis-bg: #FEF2F2;
+            --crisis-border: #EF4444;
+        }
+        
+        /* Dark Theme Colors */
+        [data-theme="dark"] {
+            --primary: #38BDF8;
+            --primary-dark: #0EA5E9;
+            --secondary: #4ADE80;
+            --secondary-dark: #22C55E;
+            --accent: #FBBF24;
+            --danger: #F87171;
+            --success: #4ADE80;
+            --warning: #FB923C;
+            --info: #60A5FA;
+            --dark: #F8FAFC;
+            --light: #0F172A;
+            --gray: #94A3B8;
+            --border-color: #1E293B;
+            
+            --background: #0F172A;
+            --card-bg: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #CBD5E1;
+            --header-bg: #1E293B;
+            --sidebar-bg: #1E293B;
+            --crisis-bg: #450A0A;
+            --crisis-border: #DC2626;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--background);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        
+        /* Dashboard Components */
+        .dashboard-card {
+            background-color: var(--card-bg);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        
+        .dashboard-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+        
+        .widget-header {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background-color: var(--sidebar-bg);
+            height: 100vh;
+            position: fixed;
+            transition: all 0.3s ease;
+            z-index: 50;
+            width: 260px;
+            box-shadow: 1px 0 3px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            border-radius: 0.375rem;
+            transition: all 0.2s ease;
+            margin: 0.25rem 0;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: rgba(var(--primary-rgb), 0.1);
+            color: var(--primary);
+        }
+        
+        /* Calculating primary color in RGB format for opacity uses */
+        :root {
+            --primary-rgb: 2, 136, 209;
+        }
+        
+        [data-theme="dark"] {
+            --primary-rgb: 56, 189, 248;
+        }
+        
+        .sidebar-link i {
+            width: 24px;
+            font-size: 1.25rem;
+            margin-right: 0.75rem;
+        }
+        
+        /* Header */
+        .dashboard-header {
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 1.5rem;
+            position: fixed;
+            width: calc(100% - 260px);
+            top: 0;
+            right: 0;
+            z-index: 40;
+            transition: all 0.3s ease;
+        }
+        
+        .dashboard-header.sidebar-collapsed {
+            width: calc(100% - 70px);
+        }
+        
+        .dashboard-header.crisis-mode {
+            background-color: var(--crisis-bg);
+            border-bottom: 2px solid var(--crisis-border);
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding-top: 70px;
+            transition: all 0.3s ease;
+        }
+        
+        .main-content.sidebar-collapsed {
+            margin-left: 70px;
+        }
+        
+        /* Crisis Mode */
+        .crisis-mode-badge {
+            background-color: var(--danger);
+            color: white;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        
+        /* Theme toggle switch */
+        .theme-toggle {
+            position: relative;
+            width: 44px;
+            height: 22px;
+            background-color: var(--border-color);
+            border-radius: 11px;
+            cursor: pointer;
+        }
+        
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            background-color: white;
+            transition: transform 0.3s ease;
+        }
+        
+        [data-theme="dark"] .theme-toggle {
+            background-color: var(--primary);
+        }
+        
+        [data-theme="dark"] .theme-toggle::before {
+            transform: translateX(22px);
+        }
+        
+        /* Priority indicators */
+        .priority-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        
+        .priority-high {
+            background-color: var(--danger);
+            box-shadow: 0 0 5px var(--danger);
+        }
+        
+        .priority-medium {
+            background-color: var(--warning);
+        }
+        
+        .priority-low {
+            background-color: var(--success);
+        }
+        
+        /* Staff schedule */
+        .schedule-container {
+            overflow-x: auto;
+        }
+        
+        .staff-list {
+            min-height: 50px;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        
+        .staff-item {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            cursor: move;
+            transition: all 0.2s ease;
+        }
+        
+        .staff-item:hover {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .shift-morning {
+            border-left-color: var(--info);
+        }
+        
+        .shift-afternoon {
+            border-left-color: var(--warning);
+        }
+        
+        .shift-evening {
+            border-left-color: var(--secondary);
+        }
+        
+        /* Stock management */
+        .stock-bar {
+            height: 6px;
+            border-radius: 3px;
+            background-color: var(--border-color);
+            overflow: hidden;
+        }
+        
+        .stock-level {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .stock-high {
+            background-color: var(--success);
+        }
+        
+        .stock-medium {
+            background-color: var(--warning);
+        }
+        
+        .stock-low {
+            background-color: var(--danger);
+        }
+        
+        /* Message styles */
+        .message-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            padding: 10px 14px;
+            border-radius: 10px;
+            max-width: 80%;
+            position: relative;
+            margin-bottom: 10px;
+        }
+        
+        .message.sent {
+            background-color: var(--primary);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 2px;
+        }
+        
+        .message.received {
+            background-color: rgba(var(--primary-rgb), 0.1);
+            color: var(--text-primary);
+            margin-right: auto;
+            border-bottom-left-radius: 2px;
+        }
+        
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            text-align: right;
+            margin-top: 3px;
+        }
+        
+        .message-input {
+            background-color: var(--background);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 9999px;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+        
+        .message-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.3);
+        }
+        
+        /* Alert system */
+        .alert-container {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        
+        .alert-item {
+            padding: 10px 12px;
+            border-radius: 6px;
+            border-left: 4px solid;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .alert-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .alert-urgent {
+            border-left-color: var(--danger);
+            background-color: rgba(244, 67, 54, 0.1);
+        }
+        
+        .alert-normal {
+            border-left-color: var(--warning);
+            background-color: rgba(255, 152, 0, 0.1);
+        }
+        
+        .alert-info {
+            border-left-color: var(--info);
+            background-color: rgba(33, 150, 243, 0.1);
+        }
+        
+        /* Employee profile */
+        .employee-profile {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .employee-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid var(--primary);
+        }
+        
+        .performance-chart {
+            height: 120px;
+            margin-top: 15px;
+        }
+        
+        /* Crisis mode toggle */
+        .crisis-toggle {
+            display: flex;
+            align-items: center;
+        }
+        
+        .crisis-toggle-button {
+            position: relative;
+            width: 60px;
+            height: 28px;
+            background-color: var(--border-color);
+            border-radius: 14px;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .crisis-toggle-button::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            top: 4px;
+            left: 4px;
+            background-color: white;
+            transition: transform 0.3s ease;
+        }
+        
+        .crisis-toggle-button.active {
+            background-color: var(--danger);
+        }
+        
+        .crisis-toggle-button.active::before {
+            transform: translateX(32px);
+        }
+        
+        /* Badge styles */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 9999px;
+        }
+        
+        .badge-green {
+            background-color: rgba(74, 222, 128, 0.2);
+            color: var(--success);
+        }
+        
+        .badge-yellow {
+            background-color: rgba(251, 191, 36, 0.2);
+            color: var(--warning);
+        }
+        
+        .badge-red {
+            background-color: rgba(248, 113, 113, 0.2);
+            color: var(--danger);
+        }
+        
+        .badge-blue {
+            background-color: rgba(96, 165, 250, 0.2);
+            color: var(--info);
+        }
+        
+        .badge-purple {
+            background-color: rgba(192, 132, 252, 0.2);
+            color: #A855F7;
+        }
+        
+        /* HR Module */
+        .hr-calendar {
+            height: 220px;
+        }
+        
+        /* Media queries */
+        @media (max-width: 1280px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar .logo-text,
+            .sidebar .menu-text {
+                display: none;
+            }
+            
+            .main-content,
+            .dashboard-header {
+                margin-left: 70px;
+                width: calc(100% - 70px);
+            }
+            
+            .crisis-toggle-label {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.mobile-open {
+                width: 260px;
+                transform: translateX(0);
+            }
+            
+            .main-content,
+            .dashboard-header {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .mobile-menu-toggle {
+                display: flex !important;
+            }
+            
+            .sidebar.mobile-open .logo-text,
+            .sidebar.mobile-open .menu-text {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="p-4">
+            <div class="flex items-center mb-8">
+                <div class="relative mr-2">
+                    <i class="fas fa-utensils text-[#4CAF50] text-2xl absolute -top-1 -left-1 opacity-30"></i>
+                    <i class="fas fa-utensils text-[#0288D1] text-2xl"></i>
+                </div>
+                <span class="logo-text text-2xl font-bold bg-gradient-to-r from-[#0288D1] to-[#4CAF50] bg-clip-text text-transparent">OctoPOS</span>
+                <button id="sidebar-toggle" class="ml-auto text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-xs text-gray-400 uppercase font-medium mb-2 menu-text">Opérations</p>
+                <a href="#" class="sidebar-link active">
+                    <i class="fas fa-th-large"></i>
+                    <span class="menu-text">Vue d'ensemble</span>
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-calendar-check"></i>
+                    <span class="menu-text">Réservations</span>
+                    <span class="ml-auto bg-primary text-white text-xs py-1 px-2 rounded-full">4</span>
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-cash-register"></i>
+                    <span class="menu-text">Caisse & Paiements</span>
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-utensils"></i>
+                    <span class="menu-text">Commandes</span>
+                </a>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-xs text-gray-400 uppercase font-medium mb-2 menu-text">Gestion</p>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-warehouse"></i>
+                    <span class="menu-text">Inventaire</span>
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-users"></i>
+                    <span class="menu-text">Personnel</span>
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="menu-text">Rapports</span>
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-comment-dots"></i>
+                    <span class="menu-text">Messages</span>
+                    <span class="ml-auto bg-danger text-white text-xs py-1 px-2 rounded-full">2</span>
+                </a>
+            </div>
+            
+            <div class="mt-auto pt-8">
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-cog"></i>
+                    <span class="menu-text">Paramètres</span>
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-question-circle"></i>
+                    <span class="menu-text">Aide</span>
+                </a>
+                <a href="login.html" class="sidebar-link text-red-500 hover:bg-red-50 hover:text-red-600">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="menu-text">Déconnexion</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- Top Header -->
+    <header class="dashboard-header" id="header">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <button id="mobile-menu-toggle" class="mr-4 text-gray-500 hidden">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="text-lg font-semibold text-primary">Supervision Opérationnelle</h1>
+                <span class="ml-3 text-xs bg-blue-100 text-blue-800 font-medium py-1 px-2 rounded dark:bg-blue-900 dark:text-blue-200">Le Bistro Parisien</span>
+            </div>
+            
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <!-- Live Counter -->
+                <div class="hidden md:flex items-center mr-2 text-sm px-3 py-1 bg-success bg-opacity-10 text-success rounded-full">
+                    <div class="w-2 h-2 rounded-full bg-success mr-2 animate-ping"></div>
+                    <span>24 clients présents</span>
+                </div>
+                
+                <!-- Crisis Toggle -->
+                <div class="crisis-toggle">
+                    <span class="crisis-toggle-label text-sm font-medium">Mode Crise</span>
+                    <button id="crisis-toggle-button" class="crisis-toggle-button"></button>
+                </div>
+                
+                <!-- Day/Night toggle -->
+                <div id="theme-toggle" class="theme-toggle mx-2">
+                    <span class="sr-only">Basculer le thème jour/nuit</span>
+                </div>
+                
+                <!-- Current time -->
+                <div class="hidden md:block text-sm text-gray-600 dark:text-gray-300">
+                    <span id="current-date-time">2025-04-09 23:14:13</span>
+                </div>
+                
+                <div class="border-l border-gray-300 dark:border-gray-700 h-6 mx-2"></div>
+                
+                <!-- Notifications -->
+                <div class="relative">
+                    <button class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 relative">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="absolute -top-1 -right-1 bg-danger text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">5</span>
+                    </button>
+                </div>
+                
+                <!-- Profile -->
+                <div class="flex items-center">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold mr-2">
+                        HB
+                    </div>
+                    <div class="hidden md:block">
+                        <p class="text-sm font-semibold">Hamza Br</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Gérant</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Dashboard Content -->
+    <main class="main-content" id="main-content">
+        <div class="p-6">
+            <!-- Crisis Mode Banner (hidden by default) -->
+            <div id="crisis-banner" class="hidden mb-6 p-4 bg-red-500 bg-opacity-10 dark:bg-red-900 dark:bg-opacity-30 border border-red-500 rounded-lg">
+                <div class="flex items-center">
+                    <div class="mr-4 bg-red-500 rounded-full p-2">
+                        <i class="fas fa-exclamation-triangle text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-red-600 dark:text-red-400">Mode Crise Activé</h3>
+                        <p class="text-red-700 dark:text-red-300">Gestion prioritaire des ressources et du personnel. Les alertes vocales sont activées.</p>
+                    </div>
+                    <button id="alert-speak-button" class="ml-auto bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <!-- Current Service Status -->
+                <div class="dashboard-card p-4">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h3 class="text-sm text-gray-500 dark:text-gray-400">Service en cours</h3>
+                            <div class="font-bold text-2xl mt-1">Dîner</div>
+                            <div class="text-sm mt-1">
+                                <span class="font-semibold text-success">24 tables occupées</span> sur 30
+                            </div>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 dark:bg-opacity-20 p-3 rounded-lg">
+                            <i class="fas fa-utensils text-primary text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center">
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="bg-gradient-to-r from-primary to-secondary h-2 rounded-full" style="width: 80%"></div>
+                        </div>
+                        <span class="ml-2 text-xs font-medium">80%</span>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-sm">
+                        <div class="flex items-center">
+                            <div class="w-2 h-2 rounded-full bg-warning"></div>
+                            <span class="ml-1 text-gray-600 dark:text-gray-300">Temps d'attente moyen: 12 min</span>
+                        </div>
+                        <span class="text-primary">Détails</span>
+                    </div>
+                </div>
+                
+                <!-- Staff Status -->
+                <div class="dashboard-card p-4">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h3 class="text-sm text-gray-500 dark:text-gray-400">Personnel en service</h3>
+                            <div class="font-bold text-2xl mt-1">12</div>
+                            <div class="text-sm mt-1">
+                                <span class="font-semibold text-danger">1 absence</span> signalée
+                            </div>
+                        </div>
+                        <div class="bg-secondary bg-opacity-10 dark:bg-opacity-20 p-3 rounded-lg">
+                            <i class="fas fa-user-friends text-secondary text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 grid grid-cols-4 gap-2">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-primary">5</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">Serveurs</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-secondary">3</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">Cuisine</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-warning">2</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">Bar</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-info">2</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">Accueil</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-sm">
+                        <span class="text-success">✓ Équipe complète pour le service</span>
+                        <span class="text-primary">Planning</span>
+                    </div>
+                </div>
+                
+                <!-- Upcoming Reservations -->
+                <div class="dashboard-card p-4">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h3 class="text-sm text-gray-500 dark:text-gray-400">Réservations à venir</h3>
+                            <div class="font-bold text-2xl mt-1">4</div>
+                            <div class="text-sm mt-1">
+                                <span class="font-semibold text-warning">1 groupe</span> important
+                            </div>
+                        </div>
+                        <div class="bg-info bg-opacity-10 dark:bg-opacity-20 p-3 rounded-lg">
+                            <i class="fas fa-calendar-check text-info text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200">23:30</span>
+                            <div class="flex items-center">
+                                <div class="priority-indicator priority-high"></div>
+                                <span class="text-sm">Table 12 - 8 pers.</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200">23:45</span>
+                            <div class="flex items-center">
+                                <div class="priority-indicator priority-medium"></div>
+                                <span class="text-sm">Table 7 - 4 pers.</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200">00:15</span>
+                            <div class="flex items-center">
+                                <div class="priority-indicator priority-low"></div>
+                                <span class="text-sm">Table 5 - 2 pers.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-sm">
+                        <span class="text-success">✓ Tables assignées</span>
+                        <span class="text-primary">Détails</span>
+                    </div>
+                </div>
+                
+                <!-- Stock Status -->
+                <div class="dashboard-card p-4">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h3 class="text-sm text-gray-500 dark:text-gray-400">État des stocks</h3>
+                            <div class="font-bold text-2xl mt-1">95%</div>
+                            <div class="text-sm mt-1">
+                                <span class="font-semibold text-danger">3 produits</span> en alerte
+                            </div>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 dark:bg-opacity-20 p-3 rounded-lg">
+                            <i class="fas fa-boxes text-warning text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm">Champagne Brut</span>
+                            <div class="flex items-center">
+                                <div class="w-24 stock-bar mr-2">
+                                    <div class="stock-level stock-low" style="width: 15%"></div>
+                                </div>
+                                <span class="text-xs font-semibold">15%</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm">Filet de bœuf</span>
+                            <div class="flex items-center">
+                                <div class="w-24 stock-bar mr-2">
+                                    <div class="stock-level stock-medium" style="width: 30%"></div>
+                                </div>
+                                <span class="text-xs font-semibold">30%</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">Fromage bleu</span>
+                            <div class="flex items-center">
+                                <div class="w-24 stock-bar mr-2">
+                                    <div class="stock-level stock-low" style="width: 10%"></div>
+                                </div>
+                                <span class="text-xs font-semibold">10%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-sm">
+                        <span class="text-danger">! Commande urgente nécessaire</span>
+                        <span class="text-primary">Inventaire</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Real-time Alerts and Planning -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Alerts System -->
+                <div class="dashboard-card p-4 col-span-1">
+                    <div class="widget-header">
+                        <h2 class="flex items-center">
+                            <i class="fas fa-bell-on text-warning mr-2"></i>
+                            Alertes en temps réel
+                        </h2>
+                        <div class="flex items-center">
+                            <div class="text-xs px-2 py-1 rounded bg-danger text-white">5 nouvelles</div>
+                        </div>
+                    </div>
+                    <div class="alert-container">
+                        <div class="alert-item alert-urgent">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-start">
+                                    <i class="fas fa-exclamation-circle text-danger mt-1 mr-2"></i>
+                                    <div>
+                                        <h4 class="font-medium">Stock critique</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Champagne Brut (2 bouteilles restantes)</p>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-gray-500">il y a 5 min</div>
+                            </div>
+                            <div class="mt-2 flex justify-end space-x-2">
+                                <button class="text-xs bg-danger text-white px-2 py-1 rounded hover:bg-red-600">Commander</button>
+                                <button class="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 rounded">Ignorer</button>
+                            </div>
+                        </div>
+                        
+                        <div class="alert-item alert-urgent">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-start">
+                                    <i class="fas fa-user-clock text-danger mt-1 mr-2"></i>
+                                    <div>
+                                        <h4 class="font-medium">Absence non planifiée</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Sophie Renaud (Serveur) - Maladie</p>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-gray-500">il y a 25 min</div>
+                            </div>
+                            <div class="mt-2 flex justify-end space-x-2">
+                                <button class="text-xs bg-primary text-white px-2 py-1 rounded hover:bg-blue-600">Remplacer</button>
+                                <button class="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 rounded">Gérer</button>
+                            </div>
+                        </div>
+                        
+                        <div class="alert-item alert-normal">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-start">
+                                    <i class="fas fa-utensils text-warning mt-1 mr-2"></i>
+                                    <div>
+                                        <h4 class="font-medium">Temps d'attente élevé</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Table 8 - Plat principal en attente depuis 18 min</p>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-gray-500">il y a 2 min</div>
+                            </div>
+                            <div class="mt-2 flex justify-end">
+                                <button class="text-xs bg-warning text-white px-2 py-1 rounded hover:bg-yellow-600">Vérifier</button>
+                            </div>
+                        </div>
+                        
+                        <div class="alert-item alert-normal">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-start">
+                                    <i class="fas fa-calendar-alt text-warning mt-1 mr-2"></i>
+                                    <div>
+                                        <h4 class="font-medium">Réservation groupe</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">12 personnes - Arrivée prévue dans 15 min</p>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-gray-500">il y a 10 min</div>
+                            </div>
+                            <div class="mt-2 flex justify-end">
+                                <button class="text-xs bg-info text-white px-2 py-1 rounded hover:bg-blue-600">Préparer</button>
+                            </div>
+                        </div>
+                        
+                        <div class="alert-item alert-info">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-start">
+                                    <i class="fas fa-comment-dots text-info mt-1 mr-2"></i>
+                                    <div>
+                                        <h4 class="font-medium">Nouveau message</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">De: Pierre (Chef) - "Problème avec le four"</p>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-gray-500">il y a 12 min</div>
+                            </div>
+                            <div class="mt-2 flex justify-end">
+                                <button class="text-xs bg-info text-white px-2 py-1 rounded hover:bg-blue-600">Répondre</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Staff Schedule -->
+                <div class="dashboard-card p-4 col-span-2">
+                    <div class="widget-header">
+                        <h2 class="flex items-center">
+                            <i class="fas fa-calendar-alt text-primary mr-2"></i>
+                            Planning du personnel
+                        </h2>
+                        <div class="flex items-center space-x-2">
+                            <button class="text-sm text-primary hover:text-primary-dark flex items-center">
+                                <i class="fas fa-plus-circle mr-1"></i> Ajouter
+                            </button>
+                            <button class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex items-center">
+                                <i class="fas fa-filter mr-1"></i> Filtrer
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex mb-4 space-x-2">
+                        <button class="text-xs bg-primary text-white px-3 py-1 rounded-full">Aujourd'hui</button>
+                        <button class="text-xs bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-1 rounded-full border border-gray-300 dark:border-gray-600">Demain</button>
+                        <button class="text-xs bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-1 rounded-full border border-gray-300 dark:border-gray-600">Cette semaine</button>
+                        <button class="text-xs bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-1 rounded-full border border-gray-300 dark:border-gray-600">Vue mensuelle</button>
+                    </div>
+                    <div class="schedule-container">
+                        <div class="grid grid-cols-3 mb-2">
+                            <div class="p-2 bg-gray-100 dark:bg-gray-800 text-center font-medium text-sm rounded-lg mx-1">Matin (7h-14h)</div>
+                            <div class="p-2 bg-gray-100 dark:bg-gray-800 text-center font-medium text-sm rounded-lg mx-1">Après-midi (14h-19h)</div>
+                            <div class="p-2 bg-gray-100 dark:bg-gray-800 text-center font-medium text-sm rounded-lg mx-1">Soir (19h-00h)</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-3">
+                            <!-- Morning Shift -->
+                            <div class="staff-list bg-blue-50 dark:bg-blue-900/30 mx-1 rounded-lg" id="morning-shift">
+                                <div class="staff-item shift-morning">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium mr-2">MB</div>
+                                            <div>
+                                                <p class="font-medium">Michel Bernard</p>
+                                                <p class="text-xs text-gray-600 dark:text-gray-300">Chef de rang</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 px-2 py-1 rounded">7h-14h</div>
+                                    </div>
+                                </div>
+                                <div class="staff-item shift-morning">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium mr-2">JD</div>
+                                            <div>
+                                                <p class="font-medium">Julie Dubois</p>
+                                                <p class="text-xs text-gray-600 dark:text-gray-300">Serveuse</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 px-2 py-1 rounded">8h-15h</div>
+                                    </div>
+                                </div>
+                                <div class="staff-item shift-morning">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium mr-2">PL</div>
+                                            <div>
+                                                <p class="font-medium">Pierre Lambert</p>
+                                                <p class="text-xs text-gray-600 dark:text-gray-300">Chef cuisinier</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 px-2 py-1 rounded">7h-14h</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Afternoon Shift -->
+                            <div class="staff-list bg-amber-50 dark:bg-amber-900/30 mx-1 rounded-lg" id="afternoon-shift">
+                                <div class="staff-item shift-afternoon">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-medium mr-2">LP</div>
+                                            <div>
+                                                <p class="font-medium">Luc Petit</p>
+                                                <p class="text-xs text-gray-600 dark:text-gray-300">Chef de rang</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-xs bg-amber-100 dark:bg-amber-800 text-amber-700 dark:text-amber-300 px-2 py-1 rounded">14h-21h</div>
+                                    </div>
+                                </div>
+                                <div class="staff-item shift-afternoon">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-medium mr-2">EM</div>
+                                            <div>
+                                                <p class="font-medium">Emma Martin</p>
+                                                <p class="text-xs text-gray-600 dark:text-gray-300">Serveuse</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-xs bg-amber-100 dark:bg-amber-800 text-amber-700 dark:text-amber-300 px-2 py-1 rounded">14h-20h</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Evening Shift -->
+                            <div class="staff-list bg-green-50 dark:bg-green-900/30 mx-1 rounded-lg" id="evening-shift">
+                                <div class="staff-item shift-evening">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-medium mr-2">TD</div>
+                                            <div>
+                                                <p class="font-medium">Thomas Dubois</p>
+                                                <p class="text-xs text-gray-600 dark:text-gray-300">Chef de rang</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-xs bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300 px-2 py-1 rounded">18h-00h</div>
+                                    </div>
+                                </div>
+                                <div class="staff-item shift-evening">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-medium mr-2">MS</div>
+                                            <div>
+                                                <p class="font-medium">Marie Strauss</p>
+                                                <p class="text-xs text-gray-600 dark:text-gray-300">Serveuse</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-xs bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300 px-2 py-1 rounded">18h-00h</div>
+                                    </div>
+                                </div>
+                                <div class="staff-item shift-evening">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-medium mr-2">AM</div>
+                                            <div>
+                                                <p class="font-medium">Alex Martin</p>
+                                                <p class="text-xs text-gray-600 dark:text-gray-300">Barman</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-xs bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300 px-2 py-1 rounded">17h-00h</div>
+                                    </div>
+                                </div>
+                                <div class="staff-item shift-evening">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-medium mr-2">SR</div>
+                                            <div>
+                                                <p class="font-medium line-through">Sophie Renaud</p>
+                                                <p class="text-xs text-red-500">Absence - Maladie</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-xs bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-300 px-2 py-1 rounded">19h-00h</div>
+                                    </div>
+                                </div>
+                                <div class="staff-item border-dashed border-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 flex items-center justify-center p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <i class="fas fa-plus text-gray-400 mr-2"></i>
+                                    <span class="text-gray-500 dark:text-gray-400">Ajouter un remplaçant</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stock Management and HR Module -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Intelligent Stock Management -->
+                <div class="dashboard-card p-4">
+                    <div class="widget-header">
+                        <h2 class="flex items-center">
+                            <i class="fas fa-boxes text-warning mr-2"></i>
+                            Gestion intelligente des stocks
+                        </h2>
+                        <div class="flex items-center">
+                            <button class="text-sm text-warning hover:text-amber-700 dark:hover:text-amber-300 flex items-center">
+                                <i class="fas fa-sync-alt mr-1"></i> Mettre à jour
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4 flex items-center">
+                        <div class="flex-1">
+                            <input type="text" placeholder="Rechercher un produit" class="w-full p-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm">
+                        </div>
+                        <div class="ml-2">
+                            <button class="p-2 bg-primary text-white rounded-lg">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left text-xs uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
+                                    <th class="px-4 py-2 text-gray-500 dark:text-gray-400">Produit</th>
+                                    <th class="px-4 py-2 text-gray-500 dark:text-gray-400">Niveau</th>
+                                    <th class="px-4 py-2 text-gray-500 dark:text-gray-400">Seuil d'alerte</th>
+                                    <th class="px-4 py-2 text-gray-500 dark:text-gray-400">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-gray-100 dark:border-gray-800">
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <div class="priority-indicator priority-high"></div>
+                                            <div>
+                                                <p class="font-medium">Champagne Brut</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">Boisson - Alcool</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <div class="stock-bar w-24 mr-2">
+                                                <div class="stock-level stock-low" style="width: 15%"></div>
+                                            </div>
+                                            <span>2 btl.</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <span class="text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 font-semibold py-1 px-2 rounded">Auto: 5 btl.</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex space-x-2">
+                                            <button class="p-1 bg-primary text-white rounded">
+                                                <i class="fas fa-shopping-cart"></i>
+                                            </button>
+                                            <button class="p-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-100 dark:border-gray-800">
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <div class="priority-indicator priority-high"></div>
+                                            <div>
+                                                <p class="font-medium">Filet de bœuf</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">Viande - Fraîche</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <div class="stock-bar w-24 mr-2">
+                                                <div class="stock-level stock-medium" style="width: 30%"></div>
+                                            </div>
+                                            <span>3.4 kg</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <span class="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 font-semibold py-1 px-2 rounded">Auto: 5 kg</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex space-x-2">
+                                            <button class="p-1 bg-primary text-white rounded">
+                                                <i class="fas fa-shopping-cart"></i>
+                                            </button>
+                                            <button class="p-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-100 dark:border-gray-800">
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <div class="priority-indicator priority-high"></div>
+                                            <div>
+                                                <p class="font-medium">Fromage bleu</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">Produit laitier</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <div class="stock-bar w-24 mr-2">
+                                                <div class="stock-level stock-low" style="width: 10%"></div>
+                                            </div>
+                                            <span>0.8 kg</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <span class="text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 font-semibold py-1 px-2 rounded">Auto: 3 kg</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex space-x-2">
+                                            <button class="p-1 bg-primary text-white rounded">
+                                                <i class="fas fa-shopping-cart"></i>
+                                            </button>
+                                            <button class="p-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-100 dark:border-gray-800">
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <div class="priority-indicator priority-medium"></div>
+                                            <div>
+                                                <p class="font-medium">Truffe noire</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">Condiment - Premium</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <div class="stock-bar w-24 mr-2">
+                                                <div class="stock-level stock-medium" style="width: 45%"></div>
+                                            </div>
+                                            <span>0.5 kg</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <span class="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 font-semibold py-1 px-2 rounded">Auto: 0.4 kg</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex space-x-2">
+                                            <button class="p-1 bg-primary text-white rounded">
+                                                <i class="fas fa-shopping-cart"></i>
+                                            </button>
+                                            <button class="p-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-100 dark:border-gray-800">
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <div class="priority-indicator priority-low"></div>
+                                            <div>
+                                                <p class="font-medium">Riz arborio</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">Céréale</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <div class="stock-bar w-24 mr-2">
+                                                <div class="stock-level stock-high" style="width: 80%"></div>
+                                            </div>
+                                            <span>8 kg</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <span class="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 font-semibold py-1 px-2 rounded">Auto: 3 kg</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex space-x-2">
+                                            <button class="p-1 bg-primary text-white rounded opacity-50 cursor-not-allowed">
+                                                <i class="fas fa-shopping-cart"></i>
+                                            </button>
+                                            <button class="p-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+                            <span>Affichage de 5 produits sur 68</span>
+                            <div class="flex items-center text-primary">
+                                <span>Voir tout l'inventaire</span>
+                                <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <div class="text-sm font-medium mb-2">À propos des seuils auto-calculés</div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Les seuils d'alerte sont ajustés automatiquement en fonction des tendances de consommation des 30 derniers jours et des réservations à venir.</p>
+                    </div>
+                </div>
+                
+                <!-- HR Module -->
+                <div class="dashboard-card p-4">
+                    <div class="widget-header">
+                        <h2 class="flex items-center">
+                            <i class="fas fa-user-tie text-secondary mr-2"></i>
+                            Module RH
+                        </h2>
+                        <div class="flex items-center space-x-3">
+                            <button class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                <i class="fas fa-chart-line mr-1"></i> Rapports
+                            </button>
+                            <button class="text-sm text-secondary hover:text-green-700 dark:hover:text-green-300">
+                                <i class="fas fa-plus-circle mr-1"></i> Nouveau
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4 flex flex-wrap gap-2">
+                        <button class="text-xs bg-secondary bg-opacity-10 text-secondary px-3 py-1 rounded-full dark:bg-opacity-20">Tous</button>
+                        <button class="text-xs bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-1 rounded-full border border-gray-200 dark:border-gray-600">En service</button>
+                        <button class="text-xs bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-1 rounded-full border border-gray-200 dark:border-gray-600">Congés</button>
+                        <button class="text-xs bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-1 rounded-full border border-gray-200 dark:border-gray-600">Formation</button>
+                        <button class="text-xs bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-1 rounded-full border border-gray-200 dark:border-gray-600">Problèmes</button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <div class="flex justify-between">
+                                <div class="flex">
+                                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Thomas Dubois" class="w-12 h-12 rounded-full object-cover mr-3">
+                                    <div>
+                                        <h3 class="font-medium">Thomas Dubois</h3>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Chef de rang</p>
+                                        <div class="mt-1">
+                                            <span class="badge badge-green">En service</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Performance</div>
+                                    <div class="font-bold text-green-500">97%</div>
+                                    <div class="text-xs">↑ 4%</div>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                                <div>Congés: 12j restants</div>
+                                <div>Ancienneté: 3 ans</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <div class="flex justify-between">
+                                <div class="flex">
+                                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Marie Strauss" class="w-12 h-12 rounded-full object-cover mr-3">
+                                    <div>
+                                        <h3 class="font-medium">Marie Strauss</h3>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Serveuse</p>
+                                        <div class="mt-1">
+                                            <span class="badge badge-green">En service</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Performance</div>
+                                    <div class="font-bold text-green-500">94%</div>
+                                    <div class="text-xs">↑ 2%</div>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                                <div>Congés: 8j restants</div>
+                                <div>Ancienneté: 2 ans</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <div class="flex justify-between">
+                                <div class="flex">
+                                    <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Sophie Renaud" class="w-12 h-12 rounded-full object-cover mr-3">
+                                    <div>
+                                        <h3 class="font-medium">Sophie Renaud</h3>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Serveuse</p>
+                                        <div class="mt-1">
+                                            <span class="badge badge-red">Absente</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Performance</div>
+                                    <div class="font-bold text-red-500">76%</div>
+                                    <div class="text-xs">↓ 8%</div>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                                <div>Congés: 15j restants</div>
+                                <div>Ancienneté: 6 mois</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <div class="flex justify-between">
+                                <div class="flex">
+                                    <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="Pierre Lambert" class="w-12 h-12 rounded-full object-cover mr-3">
+                                    <div>
+                                        <h3 class="font-medium">Pierre Lambert</h3>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Chef cuisinier</p>
+                                        <div class="mt-1">
+                                            <span class="badge badge-blue">Formation</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Performance</div>
+                                    <div class="font-bold text-green-500">90%</div>
+                                    <div class="text-xs">↑ 1%</div>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                                <div>Congés: 7j restants</div>
+                                <div>Ancienneté: 5 ans</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Calendar component -->
+                    <div class="mb-2 font-medium text-sm">Calendrier des congés et absences</div>
+                    <div id="hr-calendar" class="hr-calendar bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 mb-4"></div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Demandes en attente: 3</div>
+                        <button class="text-sm text-primary hover:text-primary-dark flex items-center">
+                            <span>Gérer les demandes</span>
+                            <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Encrypted Messaging and Tables Status -->
+            <div class="grid grid-cols-1 lg:grid-cols-7 gap-6 mb-6">
+                <!-- Messaging System -->
+                <div class="dashboard-card p-4 lg:col-span-3">
+                    <div class="widget-header">
+                        <h2 class="flex items-center">
+                            <i class="fas fa-comment-dots text-blue-500 mr-2"></i>
+                            Messagerie cryptée
+                            <span class="ml-2 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">Sécurisée</span>
+                        </h2>
+                        <div class="flex items-center">
+                            <button class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 dark:bg-blue-900/30 p-2 rounded-lg mb-4">
+                        <div class="flex items-center text-xs text-blue-700 dark:text-blue-300">
+                            <i class="fas fa-lock mr-2"></i>
+                            <span>Les messages sont chiffrés de bout en bout. Personne en dehors de vous et des destinataires ne peut les lire.</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex mb-4">
+                        <button class="flex-1 py-2 text-sm font-medium text-center border-b-2 border-primary text-primary">Toute l'équipe</button>
+                        <button class="flex-1 py-2 text-sm font-medium text-center border-b-2 border-transparent text-gray-500 dark:text-gray-400">Pierre (Chef)</button>
+                        <button class="flex-1 py-2 text-sm font-medium text-center border-b-2 border-transparent text-gray-500 dark:text-gray-400">Direction</button>
+                    </div>
+                    
+                    <div class="message-container mb-4">
+                        <div class="message received">
+                            <div class="font-medium text-sm">Thomas Dubois</div>
+                            <p>J'ai besoin de renfort en salle, nous avons un groupe qui vient d'arriver sans réservation.</p>
+                            <div class="message-time">22:45</div>
+                        </div>
+                        
+                        <div class="message received">
+                            <div class="font-medium text-sm">Pierre Lambert</div>
+                            <p>Nous avons un problème avec le four principal. J'ai dû passer au four secondaire.</p>
+                            <div class="flex items-center mt-1">
+                                <div class="bg-gray-200 dark:bg-gray-700 p-1 px-2 rounded text-xs flex items-center">
+                                    <i class="fas fa-file-image text-blue-500 mr-1"></i>
+                                    <span>photo_four.jpg</span>
+                                </div>
+                            </div>
+                            <div class="message-time">22:51</div>
+                        </div>
+                        
+                        <div class="message sent">
+                            <p>@Pierre Merci pour l'info. Demande à Alex de t'aider en cuisine si nécessaire.</p>
+                            <p class="mt-1">@Thomas J'arrive en salle pour te donner un coup de main.</p>
+                            <div class="message-time">22:53</div>
+                        </div>
+                        
+                        <div class="message received">
+                            <div class="font-medium text-sm">Marie Strauss</div>
+                            <p>Je prends en charge les tables 8 à 12. Nous avons une demande spéciale pour la table 10 (allergies).</p>
+                            <div class="message-time">22:56</div>
+                        </div>
+                        
+                        <div class="message sent">
+                            <p>@Marie Super, merci. J'ai prévenu la cuisine pour l'allergie de la table 10.</p>
+                            <div class="message-time">22:57</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="flex-1 relative">
+                            <input type="text" class="message-input" placeholder="Tapez votre message...">
+                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                                <button class="text-gray-400 hover:text-primary">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                                <button class="text-gray-400 hover:text-primary">
+                                    <i class="far fa-smile"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="ml-2 p-3 bg-primary text-white rounded-full">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Tables Layout Status -->
+                <div class="dashboard-card p-4 lg:col-span-4">
+                    <div class="widget-header">
+                        <h2 class="flex items-center">
+                            <i class="fas fa-chair text-purple-500 mr-2"></i>
+                            Plan des tables
+                        </h2>
+                        <div class="flex items-center">
+                            <button class="text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full">Vue temps réel</button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4 flex flex-wrap gap-2">
+                        <div class="flex items-center text-xs">
+                            <div class="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
+                            <span>Disponible</span>
+                        </div>
+                        <div class="flex items-center text-xs">
+                            <div class="w-3 h-3 rounded-full bg-blue-500 mr-1"></div>
+                            <span>Occupée</span>
+                        </div>
+                        <div class="flex items-center text-xs">
+                            <div class="w-3 h-3 rounded-full bg-amber-500 mr-1"></div>
+                            <span>Commande en cours</span>
+                        </div>
+                        <div class="flex items-center text-xs">
+                            <div class="w-3 h-3 rounded-full bg-red-500 mr-1"></div>
+                            <span>Paiement en attente</span>
+                        </div>
+                        <div class="flex items-center text-xs">
+                            <div class="w-3 h-3 rounded-full bg-purple-500 mr-1"></div>
+                            <span>Réservée</span>
+                        </div>
+                    </div>
+                    
+                    <div class="relative overflow-auto p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800" style="height: 320px;">
+                        <!-- Restaurant layout -->
+                        <div class="min-w-[600px] h-full relative">
+                            <!-- Tables -->
+                            <div class="absolute left-[50px] top-[40px] w-20 h-20 flex items-center justify-center rounded-full border-4 border-blue-500 bg-blue-100 dark:bg-blue-900">
+                                <div>
+                                    <div class="text-center font-bold">T1</div>
+                                    <div class="text-xs">4 pers.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="absolute left-[150px] top-[40px] w-20 h-20 flex items-center justify-center rounded-full border-4 border-blue-500 bg-blue-100 dark:bg-blue-900">
+                                <div>
+                                    <div class="text-center font-bold">T2</div>
+                                    <div class="text-xs">4 pers.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="absolute left-[250px] top-[40px] w-20 h-20 flex items-center justify-center rounded-full border-4 border-amber-500 bg-amber-100 dark:bg-amber-900">
+                                <div>
+                                    <div class="text-center font-bold">T3</div>
+                                    <div class="text-xs">4 pers.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="absolute left-[350px] top-[40px] w-20 h-20 flex items-center justify-center rounded-full border-4 border-red-500 bg-red-100 dark:bg-red-900">
+                                <div>
+                                    <div class="text-center font-bold">T4</div>
+                                    <div class="text-xs">4 pers.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="absolute left-[50px] top-[140px] w-20 h-20 flex items-center justify-center rounded-full border-4 border-blue-500 bg-blue-100 dark:bg-blue-900">
+                                <div>
+                                    <div class="text-center font-bold">T5</div>
+                                    <div class="text-xs">2 pers.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="absolute left-[150px] top-[140px] w-20 h-20 flex items-center justify-center rounded-full border-4 border-green-500 bg-green-100 dark:bg-green-900">
+                                <div>
+                                    <div class="text-center font-bold">T6</div>
+                                    <div class="text-xs">2 pers.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="absolute left-[250px] top-[140px] w-20 h-20 flex items-center justify-center rounded-full border-4 border-purple-500 bg-purple-100 dark:bg-purple-900">
+                                <div>
+                                    <div class="text-center font-bold">T7</div>
+                                    <div class="text-xs">4 pers.</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Bar area -->
+                            <div class="absolute right-[50px] top-[40px] w-80 h-40 flex items-center justify-center border-4 border-gray-500 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                                <div>
+                                    <div class="text-center font-bold">BAR</div>
+                                    <div class="mt-1 flex items-center justify-center space-x-2">
+                                        <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                                        <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Kitchen area -->
+                            <div class="absolute right-[50px] top-[180px] w-80 h-40 flex items-center justify-center border-4 border-gray-500 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                                <div>
+                                    <div class="text-center font-bold">CUISINE</div>
+                                    <div class="text-xs text-center text-amber-500 mt-1">
+                                        <i class="fas fa-fire"></i> 5 commandes en préparation
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Table 8 - Large -->
+                            <div class="absolute left-[50px] bottom-[40px] w-[140px] h-[80px] flex items-center justify-center rounded-lg border-4 border-amber-500 bg-amber-100 dark:bg-amber-900">
+                                <div>
+                                    <div class="text-center font-bold">T8</div>
+                                    <div class="text-xs">8 pers.</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tables 9-12 -->
+                            <div class="absolute left-[250px] bottom-[40px] w-20 h-20 flex items-center justify-center rounded-full border-4 border-green-500 bg-green-100 dark:bg-green-900">
+                                <div>
+                                    <div class="text-center font-bold">T9</div>
+                                    <div class="text-xs">4 pers.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="absolute left-[350px] bottom-[40px] w-20 h-20 flex items-center justify-center rounded-full border-4 border-red-500 bg-red-100 dark:bg-red-900">
+                                <div>
+                                    <div class="text-center font-bold">T10</div>
+                                    <div class="text-xs">4 pers.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <div class="flex flex-wrap justify-between gap-3">
+                            <div>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Tables occupées:</span>
+                                <span class="font-medium">8/12</span>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Serveur assigné le plus chargé:</span>
+                                <span class="font-medium">Thomas D. (5 tables)</span>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Table la plus longue:</span>
+                                <span class="font-medium">T3 (86 min)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <footer class="mt-6 mb-4 text-gray-500 dark:text-gray-400 text-sm">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div>
+                        <p>&copy; 2025 OctoPOS. Tous droits réservés.</p>
+                        <p>Version 3.4.2 | Dernière mise à jour: 2025-04-10</p>
+                    </div>
+                    <div class="mt-2 md:mt-0">
+                        <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary mx-2">Conditions d'utilisation</a>
+                        <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary mx-2">Confidentialité</a>
+                        <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary mx-2">Assistance</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </main>
+
+    <!-- JavaScript for Dashboard Functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Current date and time from server
+            const currentDateTime = "2025-04-10 08:33:51";
+            const currentUser = "HamzaBr01";
+            
+            // Update time display in real-time
+            const dateTimeEl = document.getElementById('current-date-time');
+            if (dateTimeEl) {
+                updateTime();
+                setInterval(updateTime, 1000);
+            }
+            
+            function updateTime() {
+                const date = new Date();
+                const formattedTime = date.toISOString().replace('T', ' ').substring(0, 19);
+                dateTimeEl.textContent = formattedTime;
+            }
+            
+            // Sidebar toggle functionality
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const header = document.getElementById('header');
+            
+            if (sidebarToggle && sidebar && mainContent && header) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('sidebar-collapsed');
+                    header.classList.toggle('sidebar-collapsed');
+                    
+                    // Change toggle icon
+                    const icon = sidebarToggle.querySelector('i');
+                    if (sidebar.classList.contains('collapsed')) {
+                        icon.classList.remove('fa-chevron-left');
+                        icon.classList.add('fa-chevron-right');
+                    } else {
+                        icon.classList.remove('fa-chevron-right');
+                        icon.classList.add('fa-chevron-left');
+                    }
+                });
+            }
+            
+            // Mobile menu toggle
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            
+            if (mobileMenuToggle && sidebar) {
+                mobileMenuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('mobile-open');
+                });
+            }
+            
+            // Theme toggle
+            const themeToggle = document.getElementById('theme-toggle');
+            
+            if (themeToggle) {
+                // Set initial theme based on preferences or default to light
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
+                
+                themeToggle.addEventListener('click', function() {
+                    const currentTheme = document.documentElement.getAttribute('data-theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                });
+            }
+            
+            // Crisis mode toggle
+            const crisisToggle = document.getElementById('crisis-toggle-button');
+            const crisisBanner = document.getElementById('crisis-banner');
+            const header_el = document.getElementById('header');
+            const alertSpeakButton = document.getElementById('alert-speak-button');
+            
+            if (crisisToggle && crisisBanner && header_el) {
+                crisisToggle.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    crisisBanner.classList.toggle('hidden');
+                    header_el.classList.toggle('crisis-mode');
+                    
+                    // If crisis mode is activated, speak the alert
+                    if (this.classList.contains('active') && 'speechSynthesis' in window) {
+                        speakAlert();
+                    }
+                });
+            }
+            
+            // Speech synthesis for alerts
+            if (alertSpeakButton && 'speechSynthesis' in window) {
+                alertSpeakButton.addEventListener('click', function() {
+                    speakAlert();
+                });
+            }
+            
+            function speakAlert() {
+                const alertMessage = "Attention. Mode crise activé. Cinq alertes urgentes en attente. Gestion prioritaire des ressources et du personnel requise.";
+                const utterance = new SpeechSynthesisUtterance(alertMessage);
+                utterance.lang = 'fr-FR';
+                utterance.volume = 1;
+                utterance.rate = 1;
+                utterance.pitch = 1;
+                
+                window.speechSynthesis.speak(utterance);
+            }
+            
+            // Initialize HR Calendar
+            const calendarEl = document.getElementById('hr-calendar');
+            
+            if (calendarEl) {
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: {
+                        left: 'prev,next',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek'
+                    },
+                    locale: 'fr',
+                    height: 'auto',
+                    events: [
+                        {
+                            title: 'Congé - Thomas',
+                            start: '2025-04-15',
+                            end: '2025-04-22',
+                            backgroundColor: '#3B82F6'
+                        },
+                        {
+                            title: 'Formation - Pierre',
+                            start: '2025-04-10',
+                            end: '2025-04-12',
+                            backgroundColor: '#10B981'
+                        },
+                        {
+                            title: 'Congé - Marie',
+                            start: '2025-04-25',
+                            end: '2025-04-28',
+                            backgroundColor: '#8B5CF6'
+                        },
+                        {
+                            title: 'Maladie - Sophie',
+                            start: '2025-04-10',
+                            backgroundColor: '#EF4444'
+                        }
+                    ]
+                });
+                
+                calendar.render();
+            }
+            
+            // Initialize drag & drop for staff schedule
+            const morningShift = document.getElementById('morning-shift');
+            const afternoonShift = document.getElementById('afternoon-shift');
+            const eveningShift = document.getElementById('evening-shift');
+            
+            if (morningShift && afternoonShift && eveningShift) {
+                [morningShift, afternoonShift, eveningShift].forEach(el => {
+                    new Sortable(el, {
+                        group: 'staff',
+                        animation: 150,
+                        onEnd: function(evt) {
+                            updateStaffSchedule(evt);
+                        }
+                    });
+                });
+            }
+            
+            function updateStaffSchedule(evt) {
+                const staffItem = evt.item;
+                const newShift = evt.to.id;
+                const oldShift = evt.from.id;
+                
+                if (newShift !== oldShift) {
+                    // Remove old shift class
+                    staffItem.classList.remove('shift-morning', 'shift-afternoon', 'shift-evening');
+                    
+                    // Add new shift class
+                    switch(newShift) {
+                        case 'morning-shift':
+                            staffItem.classList.add('shift-morning');
+                            break;
+                        case 'afternoon-shift':
+                            staffItem.classList.add('shift-afternoon');
+                            break;
+                        case 'evening-shift':
+                            staffItem.classList.add('shift-evening');
+                            break;
+                    }
+                    
+                    // Update time label
+                    const timeLabel = staffItem.querySelector('div.text-xs');
+                    if (timeLabel) {
+                        switch(newShift) {
+                            case 'morning-shift':
+                                timeLabel.textContent = '7h-14h';
+                                timeLabel.className = 'text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 px-2 py-1 rounded';
+                                break;
+                            case 'afternoon-shift':
+                                timeLabel.textContent = '14h-19h';
+                                timeLabel.className = 'text-xs bg-amber-100 dark:bg-amber-800 text-amber-700 dark:text-amber-300 px-2 py-1 rounded';
+                                break;
+                            case 'evening-shift':
+                                timeLabel.textContent = '19h-00h';
+                                timeLabel.className = 'text-xs bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300 px-2 py-1 rounded';
+                                break;
+                        }
+                    }
+                    
+                    // Show notification
+                    showNotification(`Horaire modifié - ${staffItem.querySelector('p.font-medium').textContent} déplacé vers ${getShiftName(newShift)}`);
+                }
+            }
+            
+            function getShiftName(shiftId) {
+                switch(shiftId) {
+                    case 'morning-shift': return 'Service Matin';
+                    case 'afternoon-shift': return 'Service Après-midi';
+                    case 'evening-shift': return 'Service Soir';
+                    default: return 'Service';
+                }
+            }
+            
+            function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-primary text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.classList.add('opacity-0');
+                    notification.style.transition = 'opacity 0.5s ease';
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 500);
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
