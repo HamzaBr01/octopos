@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OctoPOS - Tableau de bord propriétaire pour la gestion stratégique de restaurant">
+    <title>OctoPOS Dashboard | Propriétaire</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    
+    <!-- ApexCharts (for advanced charts) -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.40.0/dist/apexcharts.min.js"></script>
+    
+    <!-- jsPDF for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <!-- DatePicker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+    
+    <style>
+        :root {
+            --primary: #0288D1;
+            --primary-dark: #026da8;
+            --secondary: #4CAF50;
+            --secondary-dark: #2E7D32;
+            --accent: #FFC107;
+            --danger: #F44336;
+            --success: #4CAF50;
+            --warning: #FF9800;
+            --info: #2196F3;
+            --dark: #1E293B;
+            --light: #F8FAFC;
+            --gray: #64748B;
+            --border-color: #E2E8F0;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F1F5F9;
+            color: #334155;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+        
+        /* Dashboard Components */
+        .dashboard-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .dashboard-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .widget-header {
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.875rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #F1F5F9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-card {
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card h3 {
+            font-size: 0.875rem;
+            color: #64748B;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-card .trend {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .trend.positive {
+            color: var(--success);
+        }
+        
+        .trend.negative {
+            color: var(--danger);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background-color: white;
+            height: 100vh;
+            position: fixed;
+            transition: all 0.3s ease;
+            z-index: 50;
+            width: 260px;
+            box-shadow: 1px 0 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: #64748B;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease;
+            margin: 0.25rem 0;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: #F1F5F9;
+            color: var(--primary);
+        }
+        
+        .sidebar-link i {
+            width: 24px;
+            font-size: 1.25rem;
+            margin-right: 0.75rem;
+        }
+        
+        /* Header */
+        .dashboard-header {
+            background-color: white;
+            border-bottom: 1px solid #F1F5F9;
+            padding: 0.75rem 1.5rem;
+            position: fixed;
+            width: calc(100% - 260px);
+            top: 0;
+            right: 0;
+            z-index: 40;
+            transition: all 0.3s ease;
+        }
+        
+        .dashboard-header.sidebar-collapsed {
+            width: calc(100% - 70px);
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding-top: 70px;
+            transition: all 0.3s ease;
+        }
+        
+        .main-content.sidebar-collapsed {
+            margin-left: 70px;
+        }
+        
+        /* Custom toggle button */
+        .toggle-button {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+        
+        .toggle-button input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #E2E8F0;
+            transition: .3s;
+            border-radius: 22px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+        
+        /* Heatmap colors */
+        .heatmap-cell {
+            transition: all 0.2s ease;
+        }
+        
+        .heatmap-level-1 { background-color: #DCFCE7; }
+        .heatmap-level-2 { background-color: #BBF7D0; }
+        .heatmap-level-3 { background-color: #86EFAC; }
+        .heatmap-level-4 { background-color: #4ADE80; }
+        .heatmap-level-5 { background-color: #22C55E; }
+        
+        /* Tooltip styles */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #334155;
+            color: #fff;
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+            position: absolute;
+            z-index: 100;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.75rem;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Alert styles */
+        .alert {
+            border-left: 4px solid;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .alert i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+        
+        .alert-danger {
+            background-color: #FEF2F2;
+            border-color: var(--danger);
+            color: #B91C1C;
+        }
+        
+        .alert-warning {
+            background-color: #FFFBEB;
+            border-color: var(--warning);
+            color: #B45309;
+        }
+        
+        .alert-info {
+            background-color: #EFF6FF;
+            border-color: var(--info);
+            color: #1D4ED8;
+        }
+        
+        /* Custom Select Styles */
+        .custom-select {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .custom-select select {
+            appearance: none;
+            -webkit-appearance: none;
+            padding-right: 2rem;
+            background: transparent;
+        }
+        
+        .custom-select::after {
+            content: '\f078';
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            top: 50%;
+            right: 0.75rem;
+            transform: translateY(-50%);
+            color: #64748B;
+            pointer-events: none;
+        }
+        
+        /* Date range picker custom styling */
+        .date-range-picker {
+            border: 1px solid #E2E8F0;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #475569;
+            background-color: white;
+            cursor: pointer;
+            min-width: 200px;
+        }
+        
+        .date-range-picker:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 136, 209, 0.15);
+        }
+        
+        /* Presentation mode styles */
+        .presentation-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #121828;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        
+        .presentation-slide {
+            background-color: #1E293B;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Custom radio button styles for period selector */
+        .period-selector {
+            display: flex;
+            background-color: #F1F5F9;
+            border-radius: 0.375rem;
+            padding: 0.25rem;
+        }
+        
+        .period-option input[type="radio"] {
+            display: none;
+        }
+        
+        .period-option label {
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .period-option input[type="radio"]:checked + label {
+            background-color: white;
+            color: var(--primary);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Staff performance styles */
+        .performance-bar {
+            height: 8px;
+            background-color: #E2E8F0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .performance-value {
+            height: 100%;
+            border-radius: 4px;
+        }
+        
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 0.75rem;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Custom notification badge */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        /* Loading animation */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid rgba(2, 136, 209, 0.2);
+            border-top-color: var(--primary);
+            animation: spin 1s infinite linear;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar .logo-text,
+            .sidebar .menu-text {
+                display: none;
+            }
+            
+            .main-content,
+            .dashboard-header {
+                margin-left: 70px;
+                width: calc(100% - 70px);
+            }
+            
+            .button-with-text .btn-text {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.mobile-open {
+                width: 260px;
+                transform: translateX(0);
+            }
+            
+            .main-content,
+            .dashboard-header {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .mobile-menu-toggle {
+                display: flex !important;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="p-4">
+            <div class="flex items-center mb-8">
+                <div class="relative mr-2">
+                    <i class="fas fa-utensils text-[#4CAF50] text-2xl absolute -top-1 -left-1 opacity-30"></i>
+                    <i class="fas fa-utensils text-[#0288D1] text-2xl"></i>
+                </div>
+                <span class="logo-text text-2xl font-bold bg-gradient-to-r from-[#0288D1] to-[#4CAF50] bg-clip-text text-transparent">OctoPOS</span>
+                <button id="sidebar-toggle" class="ml-auto text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-xs text-gray-400 uppercase font-medium mb-2 menu-text">Général</p>
+                <a href="#" class="sidebar-link active">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="menu-text">Tableau de Bord</span>
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-calendar"></i>
+                    <span class="menu-text">Réservations</span>
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-utensils"></i>
+                    <span class="menu-text">Menu & Plats</span>
+                </a>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-xs text-gray-400 uppercase font-medium mb-2 menu-text">Finance</p>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-wallet"></i>
+                    <span class="menu-text">Ventes</span>
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-chart-pie"></i>
+                    <span class="menu-text">Rapports</span>
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span class="menu-text">Factures</span>
+                </a>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-xs text-gray-400 uppercase font-medium mb-2 menu-text">Gestion</p>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-users"></i>
+                    <span class="menu-text">Personnel</span>
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-warehouse"></i>
+                    <span class="menu-text">Inventaire</span>
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="menu-text">Fournisseurs</span>
+                </a>
+            </div>
+            
+            <div class="mt-auto pt-8">
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-cog"></i>
+                    <span class="menu-text">Paramètres</span>
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-question-circle"></i>
+                    <span class="menu-text">Aide</span>
+                </a>
+                <a href="login.html" class="sidebar-link text-red-500 hover:bg-red-50 hover:text-red-600">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="menu-text">Déconnexion</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- Top Header -->
+    <header class="dashboard-header" id="header">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <button id="mobile-menu-toggle" class="mr-4 text-gray-500 hidden">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="text-lg font-semibold text-gray-800">Tableau de Bord Propriétaire</h1>
+                <span class="ml-3 text-xs bg-blue-100 text-blue-800 font-medium py-1 px-2 rounded">Le Bistro Parisien</span>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div class="hidden md:flex items-center space-x-4">
+                    <div class="flex items-center text-gray-700">
+                        <span class="text-sm mr-2">Dernière mise à jour: <span class="font-medium">09 Avr 2025, 22:39</span></span>
+                        <button class="text-gray-400 hover:text-primary" id="refresh-data">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center bg-gray-100 rounded-full px-3 py-1">
+                        <button id="presentation-mode-toggle" class="text-gray-600 hover:text-primary flex items-center text-sm">
+                            <i class="fas fa-tv mr-2"></i>
+                            <span>Mode Présentation</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <button class="text-gray-500 hover:text-gray-700 relative">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="notification-badge">3</span>
+                        </button>
+                    </div>
+                    
+                    <div class="border-l border-gray-300 h-6"></div>
+                    
+                    <div class="flex items-center">
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold mr-2">
+                            HB
+                        </div>
+                        <div class="hidden md:block">
+                            <p class="text-sm font-semibold">Hamza Br</p>
+                            <p class="text-xs text-gray-500">Propriétaire</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Dashboard Content -->
+    <main class="main-content" id="main-content">
+        <div class="p-6">
+            <!-- Date Range and Export Controls -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-1">Vue d'ensemble financière</h2>
+                    <p class="text-gray-500">Analysez vos performances et prenez des décisions éclairées</p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 mt-4 md:mt-0">
+                    <div class="relative">
+                        <input type="text" id="date-range" class="date-range-picker" placeholder="Sélectionner une période" readonly>
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <button id="export-pdf" class="button-with-text flex items-center px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm text-gray-700 hover:bg-gray-50">
+                            <i class="fas fa-file-pdf text-red-500 mr-2"></i>
+                            <span class="btn-text">PDF</span>
+                        </button>
+                        <button id="export-excel" class="button-with-text flex items-center px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm text-gray-700 hover:bg-gray-50">
+                            <i class="fas fa-file-excel text-green-600 mr-2"></i>
+                            <span class="btn-text">Excel</span>
+                        </button>
+                        <button id="customize-dashboard" class="button-with-text flex items-center px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm text-gray-700 hover:bg-gray-50">
+                            <i class="fas fa-sliders-h text-gray-500 mr-2"></i>
+                            <span class="btn-text">Personnaliser</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alerts/Notifications Section -->
+            <div class="mb-6">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div>
+                        <p class="font-medium">Alerte marge - Plats principaux</p>
+                        <p class="text-sm">La marge bénéficiaire sur les plats principaux est tombée en dessous du seuil cible de 65%.</p>
+                    </div>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <p class="font-medium">Coûts d'approvisionnement en hausse</p>
+                        <p class="text-sm">Les coûts d'approvisionnement ont augmenté de 8% par rapport au mois précédent.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Key Metrics Summary -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <!-- Revenue KPI -->
+                <div class="dashboard-card stat-card">
+                    <div class="flex justify-between items-start mb-1">
+                        <h3>Chiffre d'affaires <span class="text-xs text-gray-400">(Mensuel)</span></h3>
+                        <button class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                    <div class="value">48 325,00 €</div>
+                    <div class="trend positive">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        <span>+6,2% vs mois précédent</span>
+                    </div>
+                    <div class="mt-4">
+                        <div class="h-1 w-full bg-gray-200 rounded">
+                            <div class="h-1 bg-blue-500 rounded" style="width: 85%"></div>
+                        </div>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-xs text-gray-500">Objectif: 56 000 €</span>
+                            <span class="text-xs text-blue-700 font-medium">85%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Profit Margin KPI -->
+                <div class="dashboard-card stat-card">
+                    <div class="flex justify-between items-start mb-1">
+                        <h3>Marge bénéficiaire <span class="text-xs text-gray-400">(Globale)</span></h3>
+                        <button class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                    <div class="value">62,8%</div>
+                    <div class="trend negative">
+                        <i class="fas fa-arrow-down mr-1"></i>
+                        <span>-2,4% vs mois précédent</span>
+                    </div>
+                    <div class="mt-4">
+                        <div class="h-1 w-full bg-gray-200 rounded">
+                            <div class="h-1 bg-amber-500 rounded" style="width: 62.8%"></div>
+                        </div>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-xs text-gray-500">Objectif: 65%</span>
+                            <span class="text-xs text-amber-700 font-medium">62,8%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Average Order Value KPI -->
+                <div class="dashboard-card stat-card">
+                    <div class="flex justify-between items-start mb-1">
+                        <h3>Ticket moyen <span class="text-xs text-gray-400">(Par client)</span></h3>
+                        <button class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                    <div class="value">34,75 €</div>
+                    <div class="trend positive">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        <span>+1,8% vs mois précédent</span>
+                    </div>
+                    <div class="mt-4">
+                        <div class="h-1 w-full bg-gray-200 rounded">
+                            <div class="h-1 bg-green-500 rounded" style="width: 92%"></div>
+                        </div>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-xs text-gray-500">Objectif: 37,50 €</span>
+                            <span class="text-xs text-green-700 font-medium">92%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Customer Count KPI -->
+                <div class="dashboard-card stat-card">
+                    <div class="flex justify-between items-start mb-1">
+                        <h3>Clients servis <span class="text-xs text-gray-400">(Mensuel)</span></h3>
+                        <button class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                    <div class="value">1 390</div>
+                    <div class="trend positive">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        <span>+4,3% vs mois précédent</span>
+                    </div>
+                    <div class="mt-4">
+                        <div class="h-1 w-full bg-gray-200 rounded">
+                            <div class="h-1 bg-purple-500 rounded" style="width: 77%"></div>
+                        </div>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-xs text-gray-500">Objectif: 1 800</span>
+                            <span class="text-xs text-purple-700 font-medium">77%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Revenue Trends Chart -->
+                <div class="dashboard-card p-4 lg:col-span-2">
+                    <div class="widget-header">
+                        <h4>Évolution du chiffre d'affaires</h4>
+                        <div class="period-selector">
+                            <div class="period-option">
+                                <input type="radio" name="revenue-period" id="revenue-week" checked>
+                                <label for="revenue-week">7 jours</label>
+                            </div>
+                            <div class="period-option">
+                                <input type="radio" name="revenue-period" id="revenue-month">
+                                <label for="revenue-month">30 jours</label>
+                            </div>
+                            <div class="period-option">
+                                <input type="radio" name="revenue-period" id="revenue-quarter">
+                                <label for="revenue-quarter">Trimestre</label>
+                            </div>
+                            <div class="period-option">
+                                <input type="radio" name="revenue-period" id="revenue-year">
+                                <label for="revenue-year">Année</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="h-[300px]">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 mt-4">
+                        <div class="text-center p-2 bg-blue-50 rounded-lg">
+                            <p class="text-sm text-gray-500">CA Aujourd'hui</p>
+                            <p class="font-bold text-blue-700">1 845 €</p>
+                        </div>
+                        <div class="text-center p-2 bg-green-50 rounded-lg">
+                            <p class="text-sm text-gray-500">CA Cette semaine</p>
+                            <p class="font-bold text-green-700">11 650 €</p>
+                        </div>
+                        <div class="text-center p-2 bg-purple-50 rounded-lg">
+                            <p class="text-sm text-gray-500">Projection mensuelle</p>
+                            <p class="font-bold text-purple-700">52 000 €</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Category Performance Chart -->
+                <div class="dashboard-card p-4">
+                    <div class="widget-header">
+                        <h4>Performance par catégorie</h4>
+                        <div class="custom-select">
+                            <select id="category-performance-view" class="pr-8 text-sm text-gray-600">
+                                <option value="revenue">Chiffre d'affaires</option>
+                                <option value="profit" selected>Marge bénéficiaire</option>
+                                <option value="volume">Volume de ventes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="h-[300px]">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                    <div class="mt-2">
+                        <div class="tooltip text-sm text-center bg-gray-50 p-2 rounded-lg">
+                            <span class="text-gray-500">Passez la souris sur les segments du graphique pour plus de détails</span>
+                            <span class="tooltiptext">Affiche la marge bénéficiaire pour chaque catégorie de produits</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Heat Map Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Menu Profitability Heatmap -->
+                <div class="dashboard-card p-4">
+                    <div class="widget-header">
+                        <h4>Carte thermique des plats les plus rentables</h4>
+                        <button class="text-sm text-primary hover:text-primary-dark flex items-center">
+                            <i class="fas fa-expand-alt mr-1"></i> Agrandir
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plat</th>
+                                    <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Prix</th>
+                                    <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Coût</th>
+                                    <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Marge</th>
+                                    <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Popularité</th>
+                                    <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Rentabilité</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="px-3 py-2 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="font-medium text-gray-700">Filet de Boeuf</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">26,90 €</td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">8,75 €</td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <span class="text-green-700">67.5%</span>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <div class="inline-flex items-center">
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-gray-300"></i>
+                                        </div>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <div class="heatmap-cell heatmap-level-5 rounded-full py-1 px-2">Excellente</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-3 py-2 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="font-medium text-gray-700">Risotto aux Cèpes</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">19,90 €</td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">5,50 €</td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <span class="text-green-700">72.4%</span>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <div class="inline-flex items-center">
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-amber-500"></i>
+                                        </div>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <div class="heatmap-cell heatmap-level-5 rounded-full py-1 px-2">Excellente</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-3 py-2 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="font-medium text-gray-700">Salade César</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">14,50 €</td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">5,20 €</td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <span class="text-green-700">64.1%</span>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <div class="inline-flex items-center">
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-gray-300"></i>
+                                            <i class="fas fa-star text-gray-300"></i>
+                                        </div>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <div class="heatmap-cell heatmap-level-3 rounded-full py-1 px-2">Bonne</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-3 py-2 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="font-medium text-gray-700">Crème Brûlée</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">8,90 €</td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">2,30 €</td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <span class="text-green-700">74.2%</span>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <div class="inline-flex items-center">
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-gray-300"></i>
+                                        </div>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <div class="heatmap-cell heatmap-level-4 rounded-full py-1 px-2">Très bonne</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-3 py-2 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="font-medium text-gray-700">Soupe à l'Oignon</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">10,50 €</td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">2,85 €</td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <span class="text-green-700">72.9%</span>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <div class="inline-flex items-center">
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-amber-500"></i>
+                                            <i class="fas fa-star text-gray-300"></i>
+                                            <i class="fas fa-star text-gray-300"></i>
+                                            <i class="fas fa-star text-gray-300"></i>
+                                        </div>
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap text-center">
+                                        <div class="heatmap-cell heatmap-level-2 rounded-full py-1 px-2">Moyenne</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 flex justify-between items-center">
+                        <span class="text-sm text-gray-500">Affichage des 5 meilleurs plats parmi 28</span>
+                        <a href="#" class="text-sm text-primary hover:text-primary-dark flex items-center">
+                            Voir tous les plats <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Staff Performance Chart -->
+                <div class="dashboard-card p-4">
+                    <div class="widget-header">
+                        <h4>Performance du personnel</h4>
+                        <div class="custom-select">
+                            <select id="staff-performance-view" class="pr-8 text-sm text-gray-600">
+                                <option value="sales">Ventes</option>
+                                <option value="upsell" selected>Up-selling</option>
+                                <option value="turnover">Rotation des tables</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium mr-3">MS</div>
+                                    <span class="font-medium">Marie Strauss</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-green-600 font-semibold text-sm">+18%</span>
+                                    <span class="block text-sm text-gray-500">89% d'up-selling</span>
+                                </div>
+                            </div>
+                            <div class="performance-bar">
+                                <div class="performance-value bg-green-500" style="width: 89%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-medium mr-3">TD</div>
+                                    <span class="font-medium">Thomas Dubois</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-green-600 font-semibold text-sm">+12%</span>
+                                    <span class="block text-sm text-gray-500">83% d'up-selling</span>
+                                </div>
+                            </div>
+                            <div class="performance-bar">
+                                <div class="performance-value bg-green-500" style="width: 83%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-medium mr-3">JL</div>
+                                    <span class="font-medium">Julie Laurent</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-green-600 font-semibold text-sm">+6%</span>
+                                    <span class="block text-sm text-gray-500">75% d'up-selling</span>
+                                </div>
+                            </div>
+                            <div class="performance-bar">
+                                <div class="performance-value bg-blue-500" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-medium mr-3">AM</div>
+                                    <span class="font-medium">Alex Martin</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-amber-600 font-semibold text-sm">-2%</span>
+                                    <span class="block text-sm text-gray-500">68% d'up-selling</span>
+                                </div>
+                            </div>
+                            <div class="performance-bar">
+                                <div class="performance-value bg-amber-500" style="width: 68%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-medium mr-3">SR</div>
+                                    <span class="font-medium">Sophie Renaud</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-red-600 font-semibold text-sm">-9%</span>
+                                    <span class="block text-sm text-gray-500">54% d'up-selling</span>
+                                </div>
+                            </div>
+                            <div class="performance-bar">
+                                <div class="performance-value bg-red-500" style="width: 54%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 text-sm">
+                            <div class="flex justify-between items-center">
+                                <a href="#" class="text-primary hover:text-primary-dark flex items-center">
+                                    Voir tous les employés <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                                </a>
+                                <span class="text-gray-500">Objectif: 70%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Activity and Recommendations Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Recommended Actions -->
+                <div class="dashboard-card p-4">
+                    <div class="widget-header">
+                        <h4>Actions recommandées</h4>
+                        <div class="text-sm text-primary">3 nouvelles actions</div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-start p-3 border-l-4 border-amber-500 bg-amber-50 rounded-r-lg">
+                            <div class="bg-amber-100 rounded-full p-2 mr-4">
+                                <i class="fas fa-lightbulb text-amber-600"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-medium">Optimiser les marges du menu</h5>
+                                <p class="text-gray-600 text-sm">Les plats principaux ont une marge inférieure à l'objectif. Envisagez d'ajuster les prix ou de réduire les coûts des ingrédients.</p>
+                                <div class="mt-2 flex space-x-2">
+                                    <button class="px-3 py-1 text-xs rounded border border-amber-500 text-amber-600 hover:bg-amber-500 hover:text-white transition">Analyser</button>
+                                    <button class="px-3 py-1 text-xs rounded bg-gray-200 text-gray-600 hover:bg-gray-300 transition">Plus tard</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start p-3 border-l-4 border-blue-500 bg-blue-50 rounded-r-lg">
+                            <div class="bg-blue-100 rounded-full p-2 mr-4">
+                                <i class="fas fa-chart-line text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-medium">Formation up-selling</h5>
+                                <p class="text-gray-600 text-sm">Deux serveurs sont en dessous de l'objectif d'up-selling. Planifiez une session de formation pour améliorer leurs performances.</p>
+                                <div class="mt-2 flex space-x-2">
+                                    <button class="px-3 py-1 text-xs rounded border border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white transition">Planifier</button>
+                                    <button class="px-3 py-1 text-xs rounded bg-gray-200 text-gray-600 hover:bg-gray-300 transition">Plus tard</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start p-3 border-l-4 border-green-500 bg-green-50 rounded-r-lg">
+                            <div class="bg-green-100 rounded-full p-2 mr-4">
+                                <i class="fas fa-utensils text-green-600"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-medium">Opportunité menu</h5>
+                                <p class="text-gray-600 text-sm">Le Risotto aux Cèpes est très populaire et rentable. Envisagez de créer des variantes ou des promotions autour de ce plat.</p>
+                                <div class="mt-2 flex space-x-2">
+                                    <button class="px-3 py-1 text-xs rounded border border-green-500 text-green-600 hover:bg-green-500 hover:text-white transition">Explorer</button>
+                                    <button class="px-3 py-1 text-xs rounded bg-gray-200 text-gray-600 hover:bg-gray-300 transition">Plus tard</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="dashboard-card p-4">
+                    <div class="widget-header">
+                        <h4>Activité récente</h4>
+                        <a href="#" class="text-sm text-primary hover:text-primary-dark">Voir tout</a>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                                <i class="fas fa-cash-register text-sm"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-sm"><span class="font-medium">Vente importante</span> - Table 12 a généré une addition de <span class="font-medium">198,50 €</span></p>
+                                <p class="text-xs text-gray-500">Aujourd'hui, 21:15</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3">
+                                <i class="fas fa-file-invoice text-sm"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-sm"><span class="font-medium">Facture fournisseur</span> - Paiement de <span class="font-medium">1 245,00 €</span> à Maraîchers Bio</p>
+                                <p class="text-xs text-gray-500">Aujourd'hui, 16:30</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mr-3">
+                                <i class="fas fa-calendar-check text-sm"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-sm"><span class="font-medium">Réservation groupe</span> - Confirmation pour 12 personnes le 12/04</p>
+                                <p class="text-xs text-gray-500">Aujourd'hui, 14:22</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 mr-3">
+                                <i class="fas fa-user text-sm"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-sm"><span class="font-medium">Personnel</span> - Julie Laurent a été promue Chef de Rang</p>
+                                <p class="text-xs text-gray-500">Hier, 09:45</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 mr-3">
+                                <i class="fas fa-exclamation-triangle text-sm"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-sm"><span class="font-medium">Alerte stock</span> - Niveau bas pour "Champagne Brut" (2 bouteilles)</p>
+                                <p class="text-xs text-gray-500">Hier, 08:12</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+                        <!-- Footer -->
+            <footer class="mt-6 mb-4 text-gray-500 text-sm">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div>
+                        <p>&copy; 2025 OctoPOS. Tous droits réservés.</p>
+                        <p>Version 3.4.2 | Dernière mise à jour: 2025-04-09</p>
+                    </div>
+                    <div class="mt-2 md:mt-0">
+                        <a href="#" class="text-gray-500 hover:text-primary mx-2">Conditions d'utilisation</a>
+                        <a href="#" class="text-gray-500 hover:text-primary mx-2">Confidentialité</a>
+                        <a href="#" class="text-gray-500 hover:text-primary mx-2">Assistance</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </main>
+    
+    <!-- Presentation Mode Overlay (Hidden by default) -->
+    <div id="presentation-mode" class="presentation-mode hidden">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center">
+                <div class="relative mr-2">
+                    <i class="fas fa-utensils text-[#4CAF50] text-2xl absolute -top-1 -left-1 opacity-30"></i>
+                    <i class="fas fa-utensils text-[#0288D1] text-2xl"></i>
+                </div>
+                <span class="text-2xl font-bold bg-gradient-to-r from-[#0288D1] to-[#4CAF50] bg-clip-text text-transparent">OctoPOS</span>
+                <span class="ml-4 text-xl text-white">Rapport Financier - Le Bistro Parisien</span>
+            </div>
+            <button id="exit-presentation" class="text-white hover:text-gray-300">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+        
+        <!-- Slide 1: Key Metrics -->
+        <div class="presentation-slide">
+            <h2 class="text-2xl font-bold text-white mb-4">Performances Financières</h2>
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div class="bg-gray-800 p-4 rounded-lg">
+                    <h3 class="text-xl font-semibold text-white mb-3">Chiffre d'affaires</h3>
+                    <div class="text-3xl font-bold text-blue-400 mb-2">48 325,00 €</div>
+                    <div class="flex items-center text-green-400 text-lg mb-4">
+                        <i class="fas fa-arrow-up mr-2"></i> +6,2% vs mois précédent
+                    </div>
+                    <div class="h-2 w-full bg-gray-600 rounded-full">
+                        <div class="h-2 bg-blue-500 rounded-full" style="width: 85%"></div>
+                    </div>
+                    <div class="flex justify-between text-gray-400 mt-2">
+                        <span>0 €</span>
+                        <span>Objectif: 56 000 €</span>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-800 p-4 rounded-lg">
+                    <h3 class="text-xl font-semibold text-white mb-3">Marge bénéficiaire</h3>
+                    <div class="text-3xl font-bold text-amber-400 mb-2">62,8%</div>
+                    <div class="flex items-center text-red-400 text-lg mb-4">
+                        <i class="fas fa-arrow-down mr-2"></i> -2,4% vs mois précédent
+                    </div>
+                    <div class="h-2 w-full bg-gray-600 rounded-full">
+                        <div class="h-2 bg-amber-500 rounded-full" style="width: 62.8%"></div>
+                    </div>
+                    <div class="flex justify-between text-gray-400 mt-2">
+                        <span>0%</span>
+                        <span>Objectif: 65%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <h3 class="text-xl font-semibold text-white mb-3">Évolution du chiffre d'affaires</h3>
+                <div class="h-[300px] mb-4">
+                    <canvas id="presentationRevenueChart"></canvas>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="text-center p-2 bg-gray-700 rounded-lg">
+                        <p class="text-gray-300">CA Aujourd'hui</p>
+                        <p class="text-2xl font-bold text-blue-400">1 845 €</p>
+                    </div>
+                    <div class="text-center p-2 bg-gray-700 rounded-lg">
+                        <p class="text-gray-300">CA Cette semaine</p>
+                        <p class="text-2xl font-bold text-green-400">11 650 €</p>
+                    </div>
+                    <div class="text-center p-2 bg-gray-700 rounded-lg">
+                        <p class="text-gray-300">Projection mensuelle</p>
+                        <p class="text-2xl font-bold text-purple-400">52 000 €</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 2: Menu Analysis -->
+        <div class="presentation-slide">
+            <h2 class="text-2xl font-bold text-white mb-4">Analyse des Menus</h2>
+            <div class="bg-gray-800 p-4 rounded-lg mb-6">
+                <h3 class="text-xl font-semibold text-white mb-3">Carte thermique des plats les plus rentables</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-gray-400 border-b border-gray-700">
+                                <th class="px-4 py-3">Plat</th>
+                                <th class="px-4 py-3">Prix</th>
+                                <th class="px-4 py-3">Coût</th>
+                                <th class="px-4 py-3">Marge</th>
+                                <th class="px-4 py-3">Popularité</th>
+                                <th class="px-4 py-3">Rentabilité</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-white">
+                            <tr class="border-b border-gray-700">
+                                <td class="px-4 py-3 font-medium">Filet de Boeuf</td>
+                                <td class="px-4 py-3">26,90 €</td>
+                                <td class="px-4 py-3">8,75 €</td>
+                                <td class="px-4 py-3 text-green-400">67,5%</td>
+                                <td class="px-4 py-3">
+                                    <div class="flex">
+                                        <i class="fas fa-star text-amber-400"></i>
+                                        <i class="fas fa-star text-amber-400"></i>
+                                        <i class="fas fa-star text-amber-400"></i>
+                                        <i class="fas fa-star text-amber-400"></i>
+                                        <i class="fas fa-star text-gray-600"></i>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="heatmap-cell heatmap-level-5 rounded px-2 text-center">Excellente</div>
+                                </td>
+                            </tr>
+                            <tr class="border-b border-gray-700">
+                                <td class="px-4 py-3 font-medium">Risotto aux Cèpes</td>
+                                <td class="px-4 py-3">19,90 €</td>
+                                <td class="px-4 py-3">5,50 €</td>
+                                <td class="px-4 py-3 text-green-400">72,4%</td>
+                                <td class="px-4 py-3">
+                                    <div class="flex">
+                                        <i class="fas fa-star text-amber-400"></i>
+                                        <i class="fas fa-star text-amber-400"></i>
+                                        <i class="fas fa-star text-amber-400"></i>
+                                        <i class="fas fa-star text-amber-400"></i>
+                                        <i class="fas fa-star text-amber-400"></i>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="heatmap-cell heatmap-level-5 rounded px-2 text-center">Excellente</div>
+                                </td>
+                            </tr>
+                            <tr class="border-b border-gray-700">
+                                <td class="px-4 py-3 font-medium">Salade César</td>
+                                <td class="px-4 py-3">14,50 €</td>
+                                <td class="px-4 py-3">5,20 €</td>
+                                <td class="px-4 py-3 text-green-400">64,1%</td>
+                                <td class="px-4 py-3">
+                                    <div class="flex">
+                                        <i class="fas fa-star text-amber-400"></i>
+                                        <i class="fas fa-star text-amber-400"></i>
+                                        <i class="fas fa-star text-amber-400"></i>
+                                        <i class="fas fa-star text-gray-600"></i>
+                                        <i class="fas fa-star text-gray-600"></i>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="heatmap-cell heatmap-level-3 rounded px-2 text-center">Bonne</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <h3 class="text-xl font-semibold text-white mb-3">Performance par catégorie</h3>
+                <div class="h-[300px]">
+                    <canvas id="presentationCategoryChart"></canvas>
+                </div>
+                <div class="mt-4">
+                    <div class="text-center">
+                        <p class="text-gray-400">Les desserts et les entrées sont les catégories les plus rentables, tandis que les boissons alcoolisées pourraient être optimisées.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 3: Staff Performance -->
+        <div class="presentation-slide">
+            <h2 class="text-2xl font-bold text-white mb-4">Performance du Personnel</h2>
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <h3 class="text-xl font-semibold text-white mb-3">Performance d'up-selling</h3>
+                
+                <div class="space-y-6">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center text-white font-medium mr-3">MS</div>
+                                <span class="font-medium text-white">Marie Strauss</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-green-400 font-semibold">+18%</span>
+                                <span class="block text-gray-400">89% d'up-selling</span>
+                            </div>
+                        </div>
+                        <div class="h-3 bg-gray-700 rounded-full">
+                            <div class="h-3 bg-green-500 rounded-full" style="width: 89%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-green-800 flex items-center justify-center text-white font-medium mr-3">TD</div>
+                                <span class="font-medium text-white">Thomas Dubois</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-green-400 font-semibold">+12%</span>
+                                <span class="block text-gray-400">83% d'up-selling</span>
+                            </div>
+                        </div>
+                        <div class="h-3 bg-gray-700 rounded-full">
+                            <div class="h-3 bg-green-500 rounded-full" style="width: 83%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-purple-800 flex items-center justify-center text-white font-medium mr-3">JL</div>
+                                <span class="font-medium text-white">Julie Laurent</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-green-400 font-semibold">+6%</span>
+                                <span class="block text-gray-400">75% d'up-selling</span>
+                            </div>
+                        </div>
+                        <div class="h-3 bg-gray-700 rounded-full">
+                            <div class="h-3 bg-blue-500 rounded-full" style="width: 75%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-yellow-800 flex items-center justify-center text-white font-medium mr-3">AM</div>
+                                <span class="font-medium text-white">Alex Martin</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-amber-400 font-semibold">-2%</span>
+                                <span class="block text-gray-400">68% d'up-selling</span>
+                            </div>
+                        </div>
+                        <div class="h-3 bg-gray-700 rounded-full">
+                            <div class="h-3 bg-amber-500 rounded-full" style="width: 68%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-red-800 flex items-center justify-center text-white font-medium mr-3">SR</div>
+                                <span class="font-medium text-white">Sophie Renaud</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-red-400 font-semibold">-9%</span>
+                                <span class="block text-gray-400">54% d'up-selling</span>
+                            </div>
+                        </div>
+                        <div class="h-3 bg-gray-700 rounded-full">
+                            <div class="h-3 bg-red-500 rounded-full" style="width: 54%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 pt-4 border-t border-gray-700">
+                    <div class="flex justify-between">
+                        <div class="text-gray-400">
+                            <span class="block mb-1">Moyenne d'équipe</span>
+                            <span class="text-xl font-bold text-white">73,8%</span>
+                        </div>
+                        <div class="text-gray-400">
+                            <span class="block mb-1">Objectif</span>
+                            <span class="text-xl font-bold text-white">70%</span>
+                        </div>
+                        <div class="text-gray-400">
+                            <span class="block mb-1">Écart</span>
+                            <span class="text-xl font-bold text-green-400">+3,8%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Modal (Hidden by default) -->
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal-content p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">Personnaliser le tableau de bord</h3>
+                <button id="close-settings" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <div>
+                    <h4 class="font-medium mb-3">Affichage des widgets</h4>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span>Évolution du chiffre d'affaires</span>
+                            <label class="toggle-button">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Performance par catégorie</span>
+                            <label class="toggle-button">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Carte thermique des plats</span>
+                            <label class="toggle-button">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Performance du personnel</span>
+                            <label class="toggle-button">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Actions recommandées</span>
+                            <label class="toggle-button">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Activité récente</span>
+                            <label class="toggle-button">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-4">
+                    <h4 class="font-medium mb-3">Période par défaut</h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="radio" id="period-7" name="default-period" class="mr-2">
+                            <label for="period-7">7 jours</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" id="period-30" name="default-period" class="mr-2" checked>
+                            <label for="period-30">30 jours</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" id="period-90" name="default-period" class="mr-2">
+                            <label for="period-90">90 jours</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" id="period-year" name="default-period" class="mr-2">
+                            <label for="period-year">Année</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-4">
+                    <h4 class="font-medium mb-3">Notifications</h4>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span>Alerte marge basse</span>
+                            <label class="toggle-button">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Alerte performance du personnel</span>
+                            <label class="toggle-button">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Alerte stock faible</span>
+                            <label class="toggle-button">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Rapport quotidien par email</span>
+                            <label class="toggle-button">
+                                <input type="checkbox">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-4">
+                    <h4 class="font-medium mb-3">Objectifs financiers</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Chiffre d'affaires mensuel</label>
+                            <div class="relative rounded-md">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500">€</span>
+                                </div>
+                                <input type="text" value="56000" class="p-2 pl-8 block w-full rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Marge bénéficiaire cible</label>
+                            <div class="relative rounded-md">
+                                <input type="text" value="65" class="p-2 pr-8 block w-full rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500">%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Ticket moyen cible</label>
+                            <div class="relative rounded-md">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500">€</span>
+                                </div>
+                                <input type="text" value="37.50" class="p-2 pl-8 block w-full rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex justify-end space-x-3">
+                <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Annuler</button>
+                <button class="px-4 py-2 bg-gradient-to-r from-[#0288D1] to-[#4CAF50] text-white rounded-md hover:from-[#026da8] hover:to-[#3d8b40]">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Dashboard Functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Current date and time
+            const currentDate = new Date('2025-04-09T22:46:56Z');
+            const currentUser = 'HamzaBr01';
+            
+            // Sidebar toggle functionality
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const header = document.getElementById('header');
+            
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('sidebar-collapsed');
+                header.classList.toggle('sidebar-collapsed');
+                
+                // Change toggle icon
+                const icon = sidebarToggle.querySelector('i');
+                if (sidebar.classList.contains('collapsed')) {
+                    icon.classList.remove('fa-chevron-left');
+                    icon.classList.add('fa-chevron-right');
+                } else {
+                    icon.classList.remove('fa-chevron-right');
+                    icon.classList.add('fa-chevron-left');
+                }
+            });
+            
+            // Mobile menu toggle
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            
+            mobileMenuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('mobile-open');
+            });
+            
+            // Initialize date range picker
+            const dateRangePicker = document.getElementById('date-range');
+            
+            if (dateRangePicker) {
+                flatpickr(dateRangePicker, {
+                    mode: "range",
+                    dateFormat: "d/m/Y",
+                    defaultDate: ["2025-03-01", "2025-04-09"],
+                    locale: "fr",
+                    disableMobile: true
+                });
+            }
+            
+            // Initialize charts
+            initCharts();
+            
+            // Settings modal functionality
+            const customizeDashboardBtn = document.getElementById('customize-dashboard');
+            const settingsModal = document.getElementById('settings-modal');
+            const closeSettingsBtn = document.getElementById('close-settings');
+            
+            if (customizeDashboardBtn && settingsModal) {
+                customizeDashboardBtn.addEventListener('click', function() {
+                    settingsModal.classList.add('active');
+                });
+            }
+            
+            if (closeSettingsBtn && settingsModal) {
+                closeSettingsBtn.addEventListener('click', function() {
+                    settingsModal.classList.remove('active');
+                });
+                
+                // Close when clicking outside
+                settingsModal.addEventListener('click', function(e) {
+                    if (e.target === settingsModal) {
+                        settingsModal.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Presentation mode functionality
+            const presentationModeToggle = document.getElementById('presentation-mode-toggle');
+            const presentationMode = document.getElementById('presentation-mode');
+            const exitPresentationBtn = document.getElementById('exit-presentation');
+            
+            if (presentationModeToggle && presentationMode) {
+                presentationModeToggle.addEventListener('click', function() {
+                    presentationMode.classList.remove('hidden');
+                    initPresentationCharts();
+                });
+            }
+            
+            if (exitPresentationBtn && presentationMode) {
+                exitPresentationBtn.addEventListener('click', function() {
+                    presentationMode.classList.add('hidden');
+                });
+            }
+            
+            // Export functionality
+            const exportPdfBtn = document.getElementById('export-pdf');
+            const exportExcelBtn = document.getElementById('export-excel');
+            
+            if (exportPdfBtn) {
+                exportPdfBtn.addEventListener('click', function() {
+                    exportToPdf();
+                });
+            }
+            
+            if (exportExcelBtn) {
+                exportExcelBtn.addEventListener('click', function() {
+                    exportToExcel();
+                });
+            }
+            
+            // Refresh data button
+            const refreshDataBtn = document.getElementById('refresh-data');
+            
+            if (refreshDataBtn) {
+                refreshDataBtn.addEventListener('click', function() {
+                    refreshData();
+                });
+            }
+        });
+        
+        // Initialize charts
+        function initCharts() {
+            // Revenue Chart
+            const revenueCtx = document.getElementById('revenueChart');
+            
+            if (revenueCtx) {
+                const revenueChart = new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['3 Avr', '4 Avr', '5 Avr', '6 Avr', '7 Avr', '8 Avr', '9 Avr'],
+                        datasets: [
+                            {
+                                label: 'CA Réel',
+                                data: [1645, 1820, 1950, 1730, 1845, 1910, 1845],
+                                borderColor: '#0288D1',
+                                backgroundColor: 'rgba(2, 136, 209, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            },
+                            {
+                                label: 'CA Année précédente',
+                                data: [1520, 1680, 1790, 1690, 1740, 1830, 1760],
+                                borderColor: '#9E9E9E',
+                                borderDash: [5, 5],
+                                backgroundColor: 'transparent',
+                                tension: 0.4,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                align: 'end'
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        label += new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(context.parsed.y);
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + ' €';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Handle period change
+                document.querySelectorAll('input[name="revenue-period"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        let labels, data1, data2;
+                        
+                        if (this.id === 'revenue-week') {
+                            labels = ['3 Avr', '4 Avr', '5 Avr', '6 Avr', '7 Avr', '8 Avr', '9 Avr'];
+                            data1 = [1645, 1820, 1950, 1730, 1845, 1910, 1845];
+                            data2 = [1520, 1680, 1790, 1690, 1740, 1830, 1760];
+                        } else if (this.id === 'revenue-month') {
+                            labels = ['10 Mar', '17 Mar', '24 Mar', '31 Mar', '9 Avr'];
+                            data1 = [11200, 12400, 11800, 12100, 11650];
+                            data2 = [10800, 11200, 11500, 11200, 10900];
+                        } else if (this.id === 'revenue-quarter') {
+                            labels = ['Jan', 'Fév', 'Mar', 'Avr'];
+                            data1 = [42500, 45200, 47800, 48325];
+                            data2 = [40100, 41500, 42800, 44100];
+                        } else if (this.id === 'revenue-year') {
+                            labels = ['Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc', 'Jan', 'Fév', 'Mar', 'Avr'];
+                            data1 = [38500, 41200, 43800, 45000, 46200, 44500, 47000, 52000, 42500, 45200, 47800, 48325];
+                            data2 = [36000, 38500, 40200, 41500, 43000, 42000, 44500, 48000, 40100, 41500, 42800, 44100];
+                        }
+                        
+                        revenueChart.data.labels = labels;
+                        revenueChart.data.datasets[0].data = data1;
+                        revenueChart.data.datasets[1].data = data2;
+                        revenueChart.update();
+                    });
+                });
+            }
+            
+            // Category Chart
+            const categoryCtx = document.getElementById('categoryChart');
+            
+            if (categoryCtx) {
+                const categoryChart = new Chart(categoryCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Plats principaux', 'Entrées', 'Desserts', 'Boissons non-alc.', 'Boissons alc.'],
+                        datasets: [{
+                            data: [62.8, 67.2, 74.1, 70.5, 58.3],
+                            backgroundColor: [
+                                '#0288D1',
+                                '#4CAF50',
+                                '#FFC107',
+                                '#9C27B0',
+                                '#FF5722'
+                            ],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 15
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed || 0;
+                                        return `${label}: ${value}%`;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '60%'
+                    }
+                });
+                
+                // Handle category view change
+                const categorySelect = document.getElementById('category-performance-view');
+                if (categorySelect) {
+                    categorySelect.addEventListener('change', function() {
+                        let data;
+                        
+                        if (this.value === 'revenue') {
+                            data = [46.2, 15.8, 13.5, 10.2, 14.3];
+                            categoryChart.options.plugins.tooltip.callbacks.label = function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                return `${label}: ${value}%`;
+                            };
+                        } else if (this.value === 'profit') {
+                            data = [62.8, 67.2, 74.1, 70.5, 58.3];
+                            categoryChart.options.plugins.tooltip.callbacks.label = function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                return `${label}: ${value}%`;
+                            };
+                        } else if (this.value === 'volume') {
+                            data = [28.5, 22.3, 12.7, 18.6, 17.9];
+                            categoryChart.options.plugins.tooltip.callbacks.label = function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                return `${label}: ${value}%`;
+                            };
+                        }
+                        
+                        categoryChart.data.datasets[0].data = data;
+                        categoryChart.update();
+                    });
+                }
+            }
+        }
+        
+        // Initialize presentation charts
+        function initPresentationCharts() {
+            // Presentation Revenue Chart
+            const presentationRevenueCtx = document.getElementById('presentationRevenueChart');
+            
+            if (presentationRevenueCtx) {
+                const presentationRevenueChart = new Chart(presentationRevenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['3 Avr', '4 Avr', '5 Avr', '6 Avr', '7 Avr', '8 Avr', '9 Avr'],
+                        datasets: [
+                            {
+                                label: 'CA Réel',
+                                data: [1645, 1820, 1950, 1730, 1845, 1910, 1845],
+                                borderColor: '#3B82F6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                                tension: 0.4,
+                                fill: true
+                            },
+                            {
+                                label: 'CA Année précédente',
+                                data: [1520, 1680, 1790, 1690, 1740, 1830, 1760],
+                                borderColor: '#94A3B8',
+                                borderDash: [5, 5],
+                                backgroundColor: 'transparent',
+                                tension: 0.4,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#F1F5F9'
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        label += new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(context.parsed.y);
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false,
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#94A3B8'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#94A3B8',
+                                    callback: function(value) {
+                                        return value + ' €';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Presentation Category Chart
+            const presentationCategoryCtx = document.getElementById('presentationCategoryChart');
+            
+            if (presentationCategoryCtx) {
+                const presentationCategoryChart = new Chart(presentationCategoryCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Plats principaux', 'Entrées', 'Desserts', 'Boissons non-alc.', 'Boissons alc.'],
+                        datasets: [{
+                            data: [62.8, 67.2, 74.1, 70.5, 58.3],
+                            backgroundColor: [
+                                '#3B82F6',
+                                '#10B981',
+                                '#F59E0B',
+                                '#8B5CF6',
+                                '#EF4444'
+                            ],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 15,
+                                    color: '#F1F5F9'
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed || 0;
+                                        return `${label}: ${value}%`;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '60%'
+                    }
+                });
+            }
+        }
+        
+        // Export to PDF
+        function exportToPdf() {
+            alert('Exporting dashboard to PDF...');
+            // In a real implementation, we would use jsPDF to generate a PDF report
+            
+            // Example implementation:
+            /*
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(20);
+            doc.text('OctoPOS - Rapport Financier', 20, 20);
+            doc.setFontSize(12);
+            doc.text('Le Bistro Parisien - Période: 01/03/2025 - 09/04/2025', 20, 30);
+            
+            // Add data and charts...
+            
+            doc.save('octopos-rapport.pdf');
+            */
+        }
+        
+        // Export to Excel
+        function exportToExcel() {
+            alert('Exporting dashboard data to Excel...');
+            // In a real implementation, we would use SheetJS to generate an Excel file
+            
+            // Example implementation:
+            /*
+            const data = [
+                ['Catégorie', 'Chiffre d\'affaires', 'Marge'],
+                ['Plats principaux', 22305, '62.8%'],
+                ['Entrées', 7630, '67.2%'],
+                ['Desserts', 6518, '74.1%'],
+                ['Boissons non-alc.', 4924, '70.5%'],
+                ['Boissons alc.', 6905, '58.3%']
+            ];
+            
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Rapport Financier');
+            XLSX.writeFile(wb, 'octopos-data.xlsx');
+            */
+        }
+        
+        // Refresh data animation
+        function refreshData() {
+            const refreshButton = document.getElementById('refresh-data');
+            
+            // Add spinning animation
+            refreshButton.querySelector('i').classList.add('fa-spin');
+            
+            // Simulate data refresh
+            setTimeout(() => {
+                refreshButton.querySelector('i').classList.remove('fa-spin');
+                
+                // Show success message
+                const header = document.querySelector('.dashboard-header');
+                const notification = document.createElement('div');
+                notification.className = 'absolute bottom-0 right-0 m-4 p-3 bg-green-100 text-green-800 rounded-lg shadow-md';
+                notification.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Les données ont été actualisées.';
+                header.appendChild(notification);
+                
+                // Remove notification after 3 seconds
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
